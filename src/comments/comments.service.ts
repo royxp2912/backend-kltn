@@ -1,0 +1,118 @@
+import { Model, Types } from 'mongoose';
+import { PaginationRes } from './types';
+import { InjectModel } from '@nestjs/mongoose';
+import { Comment } from 'src/schemas/Comment.schema';
+import { Product } from 'src/schemas/Product.schema';
+import { UsersService } from 'src/users/users.service';
+import { OrdersService } from 'src/orders/orders.service';
+import { ProductsService } from 'src/products/products.service';
+import { CreateCommentDto, PaginationProductDto, UpdateCommentDto } from './dto';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+
+@Injectable()
+export class CommentsService {
+    constructor(
+        private readonly usersService: UsersService,
+        private readonly ordersService: OrdersService,
+        private readonly productsService: ProductsService,
+        @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
+        @InjectModel(Product.name) private readonly productModel: Model<Product>,
+    ) { }
+
+    // CREATE ===============================================
+    async create(createCommentDto: CreateCommentDto): Promise<void> {
+        const { commentator, product } = createCommentDto;
+        await this.usersService.getById(commentator);
+        await this.productsService.getById(product);
+        await this.checkCommentExist(commentator, product);
+        const isPurchased = await this.ordersService.checkedUserPurchasedProduct(commentator, product);
+        if (!isPurchased) throw new BadRequestException("Need to purchase the product to be able to rate the product.");
+
+        const newCmt = new this.commentModel(createCommentDto);
+        await newCmt.save();
+        await this.updateAvgRatingProduct(product);
+    }
+
+    // READ =================================================
+    async getByProduct(paginationProductDto: PaginationProductDto) {
+        const proId = paginationProductDto.product;
+        const pageSize = paginationProductDto.pageSize || 1;
+        const pageNumber = paginationProductDto.pageNumber || 1;
+        await this.productsService.getById(proId);
+
+        const found = await this.commentModel.find({ product: proId })
+            .sort({ createdAt: -1 })
+            .limit(pageSize)
+            .skip(pageSize * (pageNumber - 1))
+            .populate({ path: 'commentator', select: 'fullName avatar' })
+            .select("-__v -createdAt -updatedAt");
+
+        const pages: number = Math.ceil(found.length / pageSize);
+        const result: PaginationRes = { pages: pages, data: found };
+        return result;
+    }
+
+    async checkCommentExist(userId: Types.ObjectId, proId: Types.ObjectId): Promise<void> {
+        const found = await this.commentModel.findOne({ commentator: userId, product: proId });
+        if (found) throw new ConflictException("User have commented on this product.");
+    }
+
+    // UPDATE ===============================================
+    async update(updateCommentDto: UpdateCommentDto): Promise<void> {
+        const { comment, ...others } = updateCommentDto;
+        const found = await this.commentModel.findByIdAndUpdate(comment, { $set: others });
+        if (!found) throw new NotFoundException("Comment not found.");
+        await this.updateAvgRatingProduct(found.product);
+    }
+
+    async increaseLike(cmtId: Types.ObjectId): Promise<void> {
+        const found = await this.commentModel.findByIdAndUpdate(cmtId, { $inc: { like: 1 } });
+        if (!found) throw new NotFoundException("Comment not found.");
+    }
+
+    async reduceLike(cmtId: Types.ObjectId): Promise<void> {
+        const found = await this.commentModel.findById(cmtId);
+        if (!found) throw new NotFoundException("Comment not found.");
+        if (found.like > 0) {
+            found.like -= 1;
+            await found.save();
+        }
+    }
+
+    async updateAvgRatingProduct(proId: Types.ObjectId): Promise<void> {
+        const listRating = await this.specGetByProduct(proId);
+        const sumRating = listRating.reduce((arc, cur) => arc + cur.rating, 0);
+        const length = listRating.length || 1;
+        const avgRating = (sumRating / length).toFixed(1);
+        await this.productModel.findByIdAndUpdate(proId, { $set: { rating: avgRating } });
+    }
+
+    // DELETE ===============================================
+    async deleteById(cmtId: Types.ObjectId): Promise<void> {
+        const result = await this.commentModel.findByIdAndDelete(cmtId);
+        if (!result) throw new NotFoundException("Comment not found.");
+        await this.updateAvgRatingProduct(result.product);
+    }
+
+    async deleteByProduct(proId: Types.ObjectId): Promise<void> {
+        await this.commentModel.deleteMany({ product: proId });
+        await this.updateAvgRatingProduct(proId);
+    }
+
+    async deleteByUser(userId: Types.ObjectId): Promise<void> {
+        await this.commentModel.deleteMany({ commentator: userId });
+        const result = await this.commentModel.find({ commentator: userId });
+        await Promise.all(result.map(item => this.updateAvgRatingProduct(item.product)));
+    }
+
+    async deleteAll(): Promise<void> {
+        await this.commentModel.deleteMany();
+        const result = await this.commentModel.find();
+        await Promise.all(result.map(item => this.updateAvgRatingProduct(item.product)));
+    }
+
+    // =============================================== SPECIAL ===============================================
+    async specGetByProduct(proId: Types.ObjectId) {
+        return await this.commentModel.find({ product: proId });
+    }
+}

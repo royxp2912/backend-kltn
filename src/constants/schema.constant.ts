@@ -1,0 +1,1 @@
+export const DEFAULT_AVATAR = 'https://res.cloudinary.com/dtfei3453/image/upload/v1697015386/shoeshop/avatar_default_kf1ko4.png';
