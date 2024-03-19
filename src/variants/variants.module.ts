@@ -1,18 +1,18 @@
+import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { forwardRef, Module } from '@nestjs/common';
 import { VariantsService } from './variants.service';
 import { VariantsController } from './variants.controller';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { Product, ProductSchema } from 'src/schemas/Product.schema';
 import { Variant, VariantSchema } from 'src/schemas/Variant.schema';
-import { ImageVariant, ImageVariantSchema } from 'src/schemas/ImageVariant.schema';
+import { DetailVariant, DetailVariantSchema } from 'src/schemas/DetailVariant.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Variant.name, schema: VariantSchema },
       { name: Product.name, schema: ProductSchema },
-      { name: ImageVariant.name, schema: ImageVariantSchema },
+      { name: DetailVariant.name, schema: DetailVariantSchema },
     ]),
     CloudinaryModule,
   ],

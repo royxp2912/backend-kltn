@@ -5,16 +5,15 @@ import { Comment } from 'src/schemas/Comment.schema';
 import { Product } from 'src/schemas/Product.schema';
 import { UsersService } from 'src/users/users.service';
 import { OrdersService } from 'src/orders/orders.service';
-import { ProductsService } from 'src/products/products.service';
 import { CreateCommentDto, PaginationProductDto, UpdateCommentDto } from './dto';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Order } from 'src/schemas/Order.schema';
 
 @Injectable()
 export class CommentsService {
     constructor(
         private readonly usersService: UsersService,
-        private readonly ordersService: OrdersService,
-        private readonly productsService: ProductsService,
+        @InjectModel(Order.name) private readonly orderModel: Model<Order>,
         @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
         @InjectModel(Product.name) private readonly productModel: Model<Product>,
     ) { }
@@ -23,9 +22,9 @@ export class CommentsService {
     async create(createCommentDto: CreateCommentDto): Promise<void> {
         const { commentator, product } = createCommentDto;
         await this.usersService.getById(commentator);
-        await this.productsService.getById(product);
+        await this.checkProductExist(product);
         await this.checkCommentExist(commentator, product);
-        const isPurchased = await this.ordersService.checkedUserPurchasedProduct(commentator, product);
+        const isPurchased = await this.checkedUserPurchasedProduct(commentator, product);
         if (!isPurchased) throw new BadRequestException("Need to purchase the product to be able to rate the product.");
 
         const newCmt = new this.commentModel(createCommentDto);
@@ -38,7 +37,7 @@ export class CommentsService {
         const proId = paginationProductDto.product;
         const pageSize = paginationProductDto.pageSize || 1;
         const pageNumber = paginationProductDto.pageNumber || 1;
-        await this.productsService.getById(proId);
+        await this.checkProductExist(proId);
 
         const found = await this.commentModel.find({ product: proId })
             .sort({ createdAt: -1 })
@@ -114,5 +113,25 @@ export class CommentsService {
     // =============================================== SPECIAL ===============================================
     async specGetByProduct(proId: Types.ObjectId) {
         return await this.commentModel.find({ product: proId });
+    }
+
+    async totalReviewOfProduct(proId: Types.ObjectId): Promise<number> {
+        const result = await this.commentModel.find({ product: proId })
+        return result.length;
+    }
+
+    async checkProductExist(proId: Types.ObjectId) {
+        const result = await this.productModel.findById(proId);
+        if (!result) throw new NotFoundException("Product not found.");
+        return result;
+    }
+
+    async checkedUserPurchasedProduct(userId: Types.ObjectId, proId: Types.ObjectId): Promise<boolean> {
+        const found = await this.orderModel.find({
+            user: userId,
+            "items.product": proId,
+        });
+        if (!found) return false;
+        return true;
     }
 }

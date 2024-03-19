@@ -1,13 +1,13 @@
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cart } from 'src/schemas/Cart.schema';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { User } from 'src/schemas/User.schema';
 import { AddToCartDto } from './dto/AddToCart.dto';
+import { Product } from 'src/schemas/Product.schema';
+import { VARIANT_HEX } from 'src/constants/schema.enum';
 import { VariantsService } from 'src/variants/variants.service';
 import { DetailProductInCart } from 'src/constants/schema.type';
-import { VARIANT_HEX } from 'src/constants/schema.enum';
-import { Product } from 'src/schemas/Product.schema';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { AddWithoutVariantDto, DetailVariantItemDto, RemoveFromCartDto, UpdateVariantCartDto } from './dto';
 
 @Injectable()
@@ -28,6 +28,7 @@ export class CartsService {
     async addToCartWithoutVar(addWithoutVariantDto: AddWithoutVariantDto): Promise<void> {
         const { user, product } = addWithoutVariantDto;
         const randomVariant = await this.variantsService.randomVarWithQuantityOne(product);
+        if (!randomVariant) throw new NotFoundException("The product does not have available variants yet.");
         await this.addToCart({ user, product, ...randomVariant });
     }
 
@@ -37,10 +38,12 @@ export class CartsService {
         const infoItem = await this.fillInfoItem(others);
 
         const isItemExist = await this.checkedItemExist(others.product, foundCart.items);
+
         const isStock = await this.variantsService.checkedStockVariant({
             product: others.product, color: others.color, size: others.size, quantity: others.quantity,
         });
         if (!isStock) throw new BadRequestException("Product is out of stock.");
+
         if (isItemExist) {
             await this.cartModel.findOneAndUpdate(
                 {
