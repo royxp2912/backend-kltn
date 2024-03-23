@@ -39,6 +39,9 @@ export class Order {
 
     @Prop({ type: String, enum: ORDER_STATUS, default: ORDER_STATUS.Confirming })
     status: ORDER_STATUS;
+
+    @Prop({ default: 0 })
+    discountAmount: number;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

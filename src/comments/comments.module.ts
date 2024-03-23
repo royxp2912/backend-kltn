@@ -1,14 +1,13 @@
+import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { forwardRef, Module } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { UsersModule } from 'src/users/users.module';
-import { OrdersModule } from 'src/orders/orders.module';
+import { CouponsModule } from 'src/coupons/coupons.module';
 import { CommentsController } from './comments.controller';
-import { ProductsModule } from 'src/products/products.module';
 import { Order, OrderSchema } from 'src/schemas/Order.schema';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { Comment, CommentSchema } from 'src/schemas/Comment.schema';
 import { Product, ProductSchema } from 'src/schemas/Product.schema';
-import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -18,6 +17,7 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
       { name: Product.name, schema: ProductSchema },
     ]),
     UsersModule,
+    CouponsModule,
     CloudinaryModule,
   ],
   controllers: [CommentsController],

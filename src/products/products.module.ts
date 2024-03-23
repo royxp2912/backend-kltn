@@ -9,6 +9,7 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { CategoriesModule } from 'src/categories/categories.module';
 import { Category, CategorySchema } from 'src/schemas/Category.schema';
 import { CommentsModule } from 'src/comments/comments.module';
+import { FavoritesModule } from 'src/favorites/favorites.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CommentsModule } from 'src/comments/comments.module';
     ]),
     VariantsModule,
     CommentsModule,
+    FavoritesModule,
     CloudinaryModule,
     CategoriesModule,
   ],

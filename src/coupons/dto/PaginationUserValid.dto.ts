@@ -1,12 +1,17 @@
 import { Types } from "mongoose";
 import { Transform } from "class-transformer";
-import { IsNumber, IsOptional } from "class-validator";
+import { IsNotEmpty, IsNumber } from "class-validator";
 import { IsObjectId } from "class-validator-mongo-object-id";
 
-export class GetAllProductDto {
+export class PaginationUserValidDto {
     @IsObjectId({ message: "user must be an ObjectId." })
-    @IsOptional()
-    user?: Types.ObjectId;
+    @IsNotEmpty()
+    user: Types.ObjectId;
+
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber()
+    @IsNotEmpty()
+    amount: number;
 
     @Transform(({ value }) => parseInt(value))
     @IsNumber()

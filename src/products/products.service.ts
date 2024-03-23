@@ -11,10 +11,10 @@ import { CategoriesService } from 'src/categories/categories.service';
 import { PRODUCT_BRAND, PRODUCT_STATUS } from 'src/constants/schema.enum';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import {
-    CreateProductDto, GetAllProductDto, GetByCategoryDto, GetByStatusDto, HandleResponseGetListDto,
+    CreateProductDto, GetAllProductDto, GetByCategoryDto, GetByStatusDto, HandleResponseFavoriteDto, HandleResponseGetListDto,
     PaginationKeywordSortDto, UpdateProductDto
 } from './dto';
-import { ColdObservable } from 'rxjs/internal/testing/ColdObservable';
+import { FavoritesService } from 'src/favorites/favorites.service';
 
 @Injectable()
 export class ProductsService {
@@ -22,6 +22,7 @@ export class ProductsService {
         private readonly variantsService: VariantsService,
         private readonly commentsService: CommentsService,
         private readonly categoryService: CategoriesService,
+        private readonly favoritesService: FavoritesService,
         @InjectModel(Product.name) private readonly productModel: Model<Product>,
         @InjectModel(Category.name) private readonly categoryModel: Model<Category>,
         // @Inject(forwardRef(() => CommentsService)) private readonly commentsService: CommentsService,
@@ -76,6 +77,7 @@ export class ProductsService {
 
     // READ ========================================
     async findByKeywordASort(paginationKeywordSortDto: PaginationKeywordSortDto): Promise<GetAllProductRes> {
+        const user = paginationKeywordSortDto.user;
         const sort = paginationKeywordSortDto.sort;
         const color = paginationKeywordSortDto.color;
         const brand = paginationKeywordSortDto.brand;
@@ -105,7 +107,7 @@ export class ProductsService {
             }
         } else { final = semiFinal }
 
-        return await this.handleResponseGetList({ listProducts: final, pageSize, pageNumber });
+        return await this.handleResponseGetList({ user, listProducts: final, pageSize, pageNumber });
     }
 
     async getQuantityEachBrand(): Promise<QuantityOfBrand[]> {
@@ -143,6 +145,7 @@ export class ProductsService {
     }
 
     async getByCategory(getByCategoryDto: GetByCategoryDto): Promise<GetAllProductRes> {
+        const user = getByCategoryDto.user;
         const cateId = getByCategoryDto.category;
         await this.categoryService.getById(cateId);
 
@@ -153,7 +156,7 @@ export class ProductsService {
             .populate({ path: "category", select: "name" })
             .select('-__v -createdAt -updatedAt');
 
-        return await this.handleResponseGetList({ listProducts: found, pageSize, pageNumber });
+        return await this.handleResponseGetList({ user, listProducts: found, pageSize, pageNumber });
     }
 
     async getByStatus(getByStatusDto: GetByStatusDto): Promise<GetAllProductRes> {
@@ -168,6 +171,7 @@ export class ProductsService {
     }
 
     async getAll(getAllProductDto: GetAllProductDto): Promise<GetAllProductRes> {
+        const user = getAllProductDto.user;
         const pageSize = getAllProductDto.pageSize || 1;
         const pageNumber = getAllProductDto.pageNumber || 1;
         const found = await this.productModel.find()
@@ -175,7 +179,16 @@ export class ProductsService {
             .populate({ path: "category", select: "name" })
             .select('-__v -createdAt -updatedAt');
 
-        return await this.handleResponseGetList({ listProducts: found, pageSize, pageNumber });
+        return await this.handleResponseGetList({ user, listProducts: found, pageSize, pageNumber });
+    }
+
+    async getFavoriteList(getAllProductDto: GetAllProductDto): Promise<GetAllProductRes> {
+        const user = getAllProductDto.user;
+        const pageSize = getAllProductDto.pageSize || 1;
+        const pageNumber = getAllProductDto.pageNumber || 1;
+        const found = await this.favoritesService.getByUser(user);
+
+        return await this.handleResponseGetFavorite({ user, listProducts: found, pageSize, pageNumber });
     }
 
     // not api - GET
@@ -194,33 +207,66 @@ export class ProductsService {
 
     // ======================================== SPECIAL ========================================
     async handleResponseGetList(handleResponseGetListDto: HandleResponseGetListDto): Promise<GetAllProductRes> {
-        const { listProducts, pageSize, pageNumber } = handleResponseGetListDto;
+        const { listProducts, pageSize, pageNumber, user } = handleResponseGetListDto;
 
         const pages: number = Math.ceil(listProducts.length / pageSize);
         const semiFinal = listProducts.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
-        const final = await this.fillInfoListProducts(semiFinal);
+        const final = await this.fillInfoListProducts(user, semiFinal);
         const result: GetAllProductRes = { pages: pages, data: final }
 
         return result;
     }
 
-    async fillInfoListProducts(listProducts: (Document<unknown, {}, Product> & Product & { _id: Types.ObjectId })[]) {
+    async fillInfoListProducts(userId: Types.ObjectId, listProducts: (Document<unknown, {}, Product> & Product & { _id: Types.ObjectId })[]) {
         const result = [];
         for (const product of listProducts) {
-            const found = await this.fillInfoOneProduct(product._id);
+            const found = await this.fillInfoOneProduct(product._id, userId);
             result.push(found);
         }
         return result;
     }
 
-    async fillInfoOneProduct(proId: Types.ObjectId) {
+    async fillInfoOneProduct(proId: Types.ObjectId, userId: Types.ObjectId) {
         const found = await this.productModel.findById(proId)
             .populate({ path: 'category', select: 'name' })
             .select("-__v -createdAt -updatedAt -status")
             .lean();
         const urlImg = await this.variantsService.getOneImageOfProduct(proId);
         const avaiQuantity = await this.variantsService.getAvailableQuantityOfProduct(proId);
+        let isFavorite = false;
+        if (userId) isFavorite = await this.favoritesService.checkProductIsFavorite(userId, proId);
 
-        return { ...found, image: urlImg, available: avaiQuantity };
+        return { ...found, image: urlImg, available: avaiQuantity, isFavorite };
+    }
+
+    // async fillInfoListProductsByIds(listIds: (Types.ObjectId)[]) {
+    //     const result = [];
+    //     for (const product of listIds) {
+    //         const found = await this.fillInfoOneProduct(product._id);
+    //         result.push(found);
+    //     }
+    //     return result;
+    // }
+
+    async handleResponseGetFavorite(handleResponseFavoriteDto: HandleResponseFavoriteDto): Promise<GetAllProductRes> {
+        const { listProducts, pageSize, pageNumber, user } = handleResponseFavoriteDto;
+
+        const pages: number = Math.ceil(listProducts.length / pageSize);
+        const semiFinal = listProducts.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+        // const final = await this.fillInfoFavoriteList(user, semiFinal);
+        const final = [];
+        for (const product of semiFinal) {
+            const found = await this.productModel.findById(product._id)
+                .populate({ path: 'category', select: 'name' })
+                .select("-__v -createdAt -updatedAt -status")
+                .lean();
+            const urlImg = await this.variantsService.getOneImageOfProduct(product._id);
+            const avaiQuantity = await this.variantsService.getAvailableQuantityOfProduct(product._id);
+            const result = { ...found, image: urlImg, available: avaiQuantity, isFavorite: true };
+            final.push(result);
+        }
+        const result: GetAllProductRes = { pages: pages, data: final }
+
+        return result;
     }
 }

@@ -8,11 +8,13 @@ import { OrdersService } from 'src/orders/orders.service';
 import { CreateCommentDto, PaginationProductDto, UpdateCommentDto } from './dto';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Order } from 'src/schemas/Order.schema';
+import { CouponsService } from 'src/coupons/coupons.service';
 
 @Injectable()
 export class CommentsService {
     constructor(
         private readonly usersService: UsersService,
+        private readonly couponsService: CouponsService,
         @InjectModel(Order.name) private readonly orderModel: Model<Order>,
         @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
         @InjectModel(Product.name) private readonly productModel: Model<Product>,
@@ -30,6 +32,11 @@ export class CommentsService {
         const newCmt = new this.commentModel(createCommentDto);
         await newCmt.save();
         await this.updateAvgRatingProduct(product);
+        if (!createCommentDto.images) {
+            await this.couponsService.createUserCouponReview(commentator);
+        } else {
+            await this.couponsService.createUserCouponReviewPrime(commentator);
+        }
     }
 
     // READ =================================================
