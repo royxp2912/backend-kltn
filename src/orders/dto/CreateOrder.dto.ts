@@ -24,4 +24,8 @@ export class CreateOrderDto {
     @IsNumber()
     @IsNotEmpty()
     total: number;
+
+    @IsNumber()
+    @IsOptional()
+    discountAmount?: number;
 }

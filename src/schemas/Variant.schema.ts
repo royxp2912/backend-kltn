@@ -7,9 +7,6 @@ export class Variant {
     @Prop({ type: SchemaTypes.ObjectId, ref: 'Product', required: true })
     product: Types.ObjectId;
 
-    // @Prop({ required: true })
-    // image: string;
-
     @Prop({ required: true })
     color: VARIANT_COLOR;
 
@@ -17,10 +14,7 @@ export class Variant {
     hex: VARIANT_HEX;
 
     @Prop({ required: true })
-    size: string;
-
-    @Prop({ required: true })
-    quantity: number;
+    image: string;
 }
 
 export const VariantSchema = SchemaFactory.createForClass(Variant);

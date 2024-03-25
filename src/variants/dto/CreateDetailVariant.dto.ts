@@ -3,14 +3,10 @@ import { VARIANT_COLOR } from "src/constants/schema.enum";
 import { IsObjectId } from "class-validator-mongo-object-id";
 import { IsString, IsNotEmpty, IsEnum, IsNumber, IsNumberString, IsOptional } from "class-validator";
 
-export class UpdateVariantDto {
+export class CreateDetailVariantDto {
     @IsObjectId({ message: "product must be an ObjectId." })
     @IsNotEmpty()
-    product: Types.ObjectId;
-
-    @IsEnum(VARIANT_COLOR)
-    @IsNotEmpty()
-    color: VARIANT_COLOR;
+    variant: Types.ObjectId;
 
     @IsString()
     @IsNotEmpty()

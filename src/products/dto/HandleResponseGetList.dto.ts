@@ -1,12 +1,17 @@
-import { Types } from "mongoose";
+import { Types, Document } from "mongoose";
 import { Transform } from "class-transformer";
-import { IsNumber, IsOptional } from "class-validator";
+import { Product } from "src/schemas/Product.schema";
 import { IsObjectId } from "class-validator-mongo-object-id";
+import { IsArray, IsNotEmpty, IsNumber, IsOptional } from "class-validator";
 
-export class GetAllProductDto {
+export class HandleResponseGetListDto {
     @IsObjectId({ message: "user must be an ObjectId." })
     @IsOptional()
     user?: Types.ObjectId;
+
+    @IsArray()
+    @IsNotEmpty()
+    listProducts: (Document<unknown, {}, Product> & Product & { _id: Types.ObjectId })[];
 
     @Transform(({ value }) => parseInt(value))
     @IsNumber()

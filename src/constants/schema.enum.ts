@@ -82,3 +82,13 @@ export enum ORDER_STATUS {
     ReturnSuccessfully = 'ReturnSuccessfully',
     DeliveredSuccessfully = 'DeliveredSuccessfully',
 }
+
+export enum COUPON_TYPE {
+    price = 'price',
+    percent = 'percent',
+}
+
+export enum COUPON_STATUS {
+    Active = 'Active',
+    Locked = 'Locked'
+}
