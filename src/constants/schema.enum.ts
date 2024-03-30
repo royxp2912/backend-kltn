@@ -57,13 +57,13 @@ export enum VARIANT_COLOR {
 }
 
 export enum VARIANT_HEX {
-    Red = '#FF0000',
+    Red = '#FC3E39',
     Blue = '#0000FF',
     Gray = '#808080',
     Cyan = '#00FFFF',
     Pink = '#FFC0CB',
     Green = '#00FF00',
-    Black = '#000000',
+    Black = '#171717',
     White = '#FFFFFF',
     Brown = '#A52A2A',
     Purple = '#800080',
