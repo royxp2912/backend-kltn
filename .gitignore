@@ -35,4 +35,4 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 .env
-.push-notifications-key.json
+push-notifications-key.json
