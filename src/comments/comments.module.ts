@@ -8,6 +8,7 @@ import { Order, OrderSchema } from 'src/schemas/Order.schema';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { Comment, CommentSchema } from 'src/schemas/Comment.schema';
 import { Product, ProductSchema } from 'src/schemas/Product.schema';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { Product, ProductSchema } from 'src/schemas/Product.schema';
     UsersModule,
     CouponsModule,
     CloudinaryModule,
+    NotificationsModule,
   ],
   controllers: [CommentsController],
   providers: [CommentsService],

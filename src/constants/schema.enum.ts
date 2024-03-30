@@ -15,6 +15,11 @@ export enum USER_GENDER {
     Other = 'Other'
 }
 
+export enum NOTI_TOKEN_STATUS {
+    ACTIVE = 'ACTIVE',
+    INACTIVE = 'INACTIVE'
+}
+
 export enum AUTH_TOKENS {
     Active = 'Active',
     Disabled = 'Disabled',

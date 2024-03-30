@@ -2,19 +2,21 @@ import { Model, Types } from 'mongoose';
 import { PaginationRes } from './types';
 import { InjectModel } from '@nestjs/mongoose';
 import { Comment } from 'src/schemas/Comment.schema';
+import { Order } from 'src/schemas/Order.schema';
 import { Product } from 'src/schemas/Product.schema';
 import { UsersService } from 'src/users/users.service';
-import { OrdersService } from 'src/orders/orders.service';
+// import { OrdersService } from 'src/orders/orders.service';
+import { CouponsService } from 'src/coupons/coupons.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 import { CreateCommentDto, PaginationProductDto, UpdateCommentDto } from './dto';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Order } from 'src/schemas/Order.schema';
-import { CouponsService } from 'src/coupons/coupons.service';
 
 @Injectable()
 export class CommentsService {
     constructor(
         private readonly usersService: UsersService,
         private readonly couponsService: CouponsService,
+        private readonly notificationsService: NotificationsService,
         @InjectModel(Order.name) private readonly orderModel: Model<Order>,
         @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
         @InjectModel(Product.name) private readonly productModel: Model<Product>,
@@ -24,7 +26,7 @@ export class CommentsService {
     async create(createCommentDto: CreateCommentDto): Promise<void> {
         const { commentator, product } = createCommentDto;
         await this.usersService.getById(commentator);
-        await this.checkProductExist(product);
+        const productExist = await this.checkProductExist(product);
         await this.checkCommentExist(commentator, product);
         const isPurchased = await this.checkedUserPurchasedProduct(commentator, product);
         if (!isPurchased) throw new BadRequestException("Need to purchase the product to be able to rate the product.");
@@ -37,6 +39,8 @@ export class CommentsService {
         } else {
             await this.couponsService.createUserCouponReviewPrime(commentator);
         }
+
+        await this.notificationsService.sendPush({ user: commentator, title: "New Coupon!!!", body: `You have just successfully commented on product '${productExist.name}' and received a coupon. Try accessing the application to see details.` });
     }
 
     // READ =================================================
