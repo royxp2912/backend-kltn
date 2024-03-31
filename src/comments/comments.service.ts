@@ -10,6 +10,7 @@ import { CouponsService } from 'src/coupons/coupons.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { CreateCommentDto, PaginationProductDto, UpdateCommentDto } from './dto';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ORDER_STATUS } from 'src/constants/schema.enum';
 
 @Injectable()
 export class CommentsService {
@@ -30,6 +31,9 @@ export class CommentsService {
         await this.checkCommentExist(commentator, product);
         const isPurchased = await this.checkedUserPurchasedProduct(commentator, product);
         if (!isPurchased) throw new BadRequestException("Need to purchase the product to be able to rate the product.");
+        if (isPurchased.status === ORDER_STATUS.DeliveredSuccessfully || isPurchased.status === ORDER_STATUS.Successful) {
+            throw new BadRequestException("The order has not been successfully delivered so cannot comment..");
+        }
 
         const newCmt = new this.commentModel(createCommentDto);
         await newCmt.save();
@@ -137,12 +141,12 @@ export class CommentsService {
         return result;
     }
 
-    async checkedUserPurchasedProduct(userId: Types.ObjectId, proId: Types.ObjectId): Promise<boolean> {
-        const found = await this.orderModel.find({
+    async checkedUserPurchasedProduct(userId: Types.ObjectId, proId: Types.ObjectId) {
+        const found = await this.orderModel.findOne({
             user: userId,
             "items.product": proId,
         });
         if (!found) return false;
-        return true;
+        return found;
     }
 }
