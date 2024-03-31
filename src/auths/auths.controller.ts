@@ -50,4 +50,10 @@ export class AuthsController {
         res.clearCookie('refreshToken', { httpOnly: true });
         return { message: "Logout succeed" };
     }
+
+    @Post('clear')
+    async clearCookie(@Res({ passthrough: true }) res) {
+        res.clearCookie('refreshToken', { httpOnly: true });
+        return { message: "Clear RefreshToken succeed" };
+    }
 }

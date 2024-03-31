@@ -8,6 +8,7 @@ import { Order, OrderSchema } from 'src/schemas/Order.schema';
 import { VariantsModule } from 'src/variants/variants.module';
 import { ProductsModule } from 'src/products/products.module';
 import { OrderAddressModule } from 'src/orderaddress/orderaddress.module';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 import { DeliveryAddressModule } from 'src/deliveryaddress/deliveryaddress.module';
 
 @Module({
@@ -20,6 +21,7 @@ import { DeliveryAddressModule } from 'src/deliveryaddress/deliveryaddress.modul
     VariantsModule,
     ProductsModule,
     OrderAddressModule,
+    NotificationsModule,
     DeliveryAddressModule,
   ],
   providers: [OrdersService],

@@ -13,6 +13,7 @@ import { BadGatewayException, BadRequestException, Injectable, NotFoundException
 import {
     CreateOrderDto, PaginationDto, PaginationKeywordDto, PaginationStatusDto, PaginationUserAStatusDto, PaginationUserDto
 } from './dto';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class OrdersService {
@@ -21,6 +22,7 @@ export class OrdersService {
         private readonly variantsService: VariantsService,
         private readonly productsService: ProductsService,
         private readonly orderAddressService: OrderAddressService,
+        private readonly notificationsService: NotificationsService,
         private readonly deliveryAddressService: DeliveryAddressService,
         @InjectModel(User.name) private readonly userModel: Model<User>,
         @InjectModel(Order.name) private readonly orderModel: Model<Order>,
@@ -51,6 +53,8 @@ export class OrdersService {
             this.variantsService.reduceQuantity({ product: item.product, color: item.color, size: item.size, quantity: item.quantity });
             this.productsService.updateSold(item.product, item.quantity);
         }))
+
+        await this.notificationsService.sendPush({ user: newOrder.user, title: "New Order!!!", body: `You just placed a new order! Try accessing the application to see details.` });
     }
 
     // READ =================================================

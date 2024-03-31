@@ -66,8 +66,8 @@ export class VariantsController {
 
     @Get("find/by-info")
     async getDetailByInfo(@Query() getVariantByInfoDto: GetVariantByInfoDto) {
-        // const result = await this.variantsService.getDetail(getVariantByInfoDto);
-        // return { message: "Get Detail Variant succeed.", result }
+        const result = await this.variantsService.getDetail(getVariantByInfoDto);
+        return { message: "Get Detail Variant succeed.", result }
     }
 
     @Get(":varId")
