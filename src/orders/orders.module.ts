@@ -10,6 +10,7 @@ import { ProductsModule } from 'src/products/products.module';
 import { OrderAddressModule } from 'src/orderaddress/orderaddress.module';
 import { NotificationsModule } from 'src/notifications/notifications.module';
 import { DeliveryAddressModule } from 'src/deliveryaddress/deliveryaddress.module';
+import { CouponsModule } from 'src/coupons/coupons.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { DeliveryAddressModule } from 'src/deliveryaddress/deliveryaddress.modul
       { name: User.name, schema: UserSchema },
       { name: Order.name, schema: OrderSchema },
     ]),
+    CouponsModule,
     CartsModule,
     VariantsModule,
     ProductsModule,

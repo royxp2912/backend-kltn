@@ -130,7 +130,7 @@ export class ProductsService {
         return result;
     }
 
-    async getDetailProduct(proId: Types.ObjectId) {
+    async getDetailProduct(proId: Types.ObjectId, userId?: Types.ObjectId) {
         const result = await this.productModel.findById(proId)
             .populate({ path: "category", select: "name" })
             .select("-__v -createdAt -updatedAt -status")
@@ -141,7 +141,9 @@ export class ProductsService {
         const variants = await this.variantsService.getListColorAndSize(proId);
         const randomVariant = await this.variantsService.randomVarByProduct(proId);
         const reviews = await this.commentsService.totalReviewOfProduct(proId);
-        return { ...result, images, variants, randomVariant, reviews, };
+        let isFavorite = false;
+        if (userId) isFavorite = await this.favoritesService.checkProductIsFavorite(userId, proId);
+        return { ...result, images, variants, randomVariant, reviews, isFavorite };
     }
 
     async getByCategory(getByCategoryDto: GetByCategoryDto): Promise<GetAllProductRes> {
