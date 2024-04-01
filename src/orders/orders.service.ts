@@ -14,11 +14,13 @@ import {
     CreateOrderDto, PaginationDto, PaginationKeywordDto, PaginationStatusDto, PaginationUserAStatusDto, PaginationUserDto
 } from './dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import { CouponsService } from 'src/coupons/coupons.service';
 
 @Injectable()
 export class OrdersService {
     constructor(
         private readonly cartsService: CartsService,
+        private readonly couponsService: CouponsService,
         private readonly variantsService: VariantsService,
         private readonly productsService: ProductsService,
         private readonly orderAddressService: OrderAddressService,
@@ -30,6 +32,7 @@ export class OrdersService {
 
     // CREATE ===============================================
     async create(createOrderDto: CreateOrderDto) {
+        const { coupon, ...others } = createOrderDto;
         const isStock = await createOrderDto.items.reduce(async (acc, cur) => {
             const checked = await this.variantsService.checkedStockVariant(
                 {
@@ -43,9 +46,9 @@ export class OrdersService {
         }, Promise.resolve(true));
         if (!isStock) throw new BadRequestException(`Product is out of stock.`);
 
-        const orderAddress = await this.convertDeliveryToOrder(createOrderDto.deliveryAddress);
+        const orderAddress = await this.convertDeliveryToOrder(others.deliveryAddress);
 
-        const newOrder = new this.orderModel({ ...createOrderDto, deliveryAddress: orderAddress });
+        const newOrder = new this.orderModel({ ...others, deliveryAddress: orderAddress });
         newOrder.save();
 
         await Promise.all(newOrder.items.map(item => {
@@ -53,6 +56,7 @@ export class OrdersService {
             this.variantsService.reduceQuantity({ product: item.product, color: item.color, size: item.size, quantity: item.quantity });
             this.productsService.updateSold(item.product, item.quantity);
         }))
+        if (coupon) await this.couponsService.deleteByUserACoupon(coupon);
 
         await this.notificationsService.sendPush({ user: newOrder.user, title: "New Order!!!", body: `You just placed a new order! Try accessing the application to see details.` });
     }

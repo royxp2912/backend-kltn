@@ -28,4 +28,8 @@ export class CreateOrderDto {
     @IsNumber()
     @IsOptional()
     discountAmount?: number;
+
+    @IsObjectId({ message: "deliveryAddress must be an ObjectId." })
+    @IsOptional()
+    coupon?: Types.ObjectId;
 }
