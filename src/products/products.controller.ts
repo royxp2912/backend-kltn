@@ -72,10 +72,17 @@ export class ProductsController {
     }
 
     @Get(":proId")
-    async getById(@Param('proId', new ValidateObjectIdPipe()) proId: Types.ObjectId) {
-        const result = await this.productService.getDetailProduct(proId);
-
-        return { message: "Get Product Succeed", result };
+    async getById(@Param('proId', new ValidateObjectIdPipe()) proId: Types.ObjectId, @Req() req) {
+        const refreshToken = req.cookies["refreshToken"];
+        if (refreshToken) {
+            const payload = getPayloadOfToken(refreshToken) as Payload;
+            const userId = payload.userId;
+            const result = await this.productService.getDetailProduct(proId, userId);
+            return { message: "Get Product Succeed", result };
+        } else {
+            const result = await this.productService.getDetailProduct(proId);
+            return { message: "Get Product Succeed", result };
+        }
     }
 
     @Get("brand/quantity")

@@ -50,9 +50,9 @@ export class CouponsController {
     // =============================================== DELETE ===============================================
 
     // =============================================== SPECIAL ==============================================
-    // @Post("list")
-    // async createUserCoupon(@Body() createUserCouponDto: CreateUserCouponDto) {
-    //     await this.couponsService.createUserCoupon(createUserCouponDto);
-    //     return { message: "Create User Coupon succeed." }
-    // }
+    @Post("list")
+    async createUserCoupon(@Body("userId") userId: Types.ObjectId) {
+        await this.couponsService.createUserCouponReviewPrime(userId);
+        return { message: "Create User Coupon succeed." }
+    }
 }
