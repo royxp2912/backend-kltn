@@ -16,6 +16,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { OrderAddressModule } from './orderaddress/orderaddress.module';
 import { DeliveryAddressModule } from './deliveryaddress/deliveryaddress.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { RevenueModule } from './revenue/revenue.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     OrderAddressModule,
     DeliveryAddressModule,
     NotificationsModule,
+    RevenueModule,
   ],
   controllers: [],
   providers: [],

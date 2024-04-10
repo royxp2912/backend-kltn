@@ -31,7 +31,8 @@ export class CommentsService {
         await this.checkCommentExist(commentator, product);
         const isPurchased = await this.checkedUserPurchasedProduct(commentator, product);
         if (!isPurchased) throw new BadRequestException("Need to purchase the product to be able to rate the product.");
-        if (isPurchased.status === ORDER_STATUS.DeliveredSuccessfully || isPurchased.status === ORDER_STATUS.Successful) {
+
+        if (isPurchased.status !== ORDER_STATUS.DeliveredSuccessfully && isPurchased.status !== ORDER_STATUS.Successful) {
             throw new BadRequestException("The order has not been successfully delivered so cannot comment..");
         }
 
@@ -44,7 +45,7 @@ export class CommentsService {
             await this.couponsService.createUserCouponReviewPrime(commentator);
         }
 
-        await this.notificationsService.sendPush({ user: commentator, title: "New Coupon!!!", body: `You have just successfully commented on product '${productExist.name}' and received a coupon. Try accessing the application to see details.` });
+        // await this.notificationsService.sendPush({ user: commentator, title: "New Coupon!!!", body: `You have just successfully commented on product '${productExist.name}' and received a coupon. Try accessing the application to see details.` });
     }
 
     // READ =================================================

@@ -75,7 +75,7 @@ export class CouponsService {
         const result = [];
         for (const item of foundListCoupons) {
             const found = await this.getById(item.coupon);
-            if (found.minAmount > amount) break;
+            if (found.minAmount > amount) continue;
             result.push({ ...found, _id: item._id, startDate: item.startDate, endDate: item.endDate })
         }
         const pages: number = Math.ceil(result.length / pageSize);

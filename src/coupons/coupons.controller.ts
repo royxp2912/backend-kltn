@@ -31,6 +31,8 @@ export class CouponsController {
     @Get("find/by-user/valid")
     async getListOfValidCouponForUser(@Query() paginationUserValidDto: PaginationUserValidDto) {
         const result = await this.couponsService.getListOfValidCouponsForUser(paginationUserValidDto);
+        console.log("paginationUserValidDto: ", paginationUserValidDto.amount);
+
         return { message: "Get List Coupon Of User succeed.", result: result.data, pages: result.pages }
     }
 

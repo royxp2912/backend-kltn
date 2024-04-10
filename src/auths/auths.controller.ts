@@ -43,7 +43,7 @@ export class AuthsController {
         return { message: "Refresh Token succeed", result: result.accessToken };
     }
 
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(AuthGuard('jwt-refresh'))
     @Post('logout')
     async logout(@Req() req, @Res({ passthrough: true }) res) {
         await this.authsService.logout(req.user.userId);
