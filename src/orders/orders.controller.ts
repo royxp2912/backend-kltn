@@ -109,4 +109,19 @@ export class OrdersController {
     // ====================================================================================================
 
     // DELETE ===============================================
+
+    // =============================================== VNPAY ===============================================
+    @Get("payment-url/:orderId")
+    async generatePaymentUrl(@Param('orderId', new ValidateObjectIdPipe()) orderId: Types.ObjectId) {
+        const result = this.ordersService.generatePaymentUrl(orderId, 200);
+        return { message: "Create payment-url succeed.", result }
+    }
+
+    @Get("vnpay/callback")
+    async callbackVNPay(@Query() query) {
+        const result = this.ordersService.validatePaymentCallback(query);
+        console.log("result callback; ", result);
+
+        return { message: "call back payment-url succeed.", result }
+    }
 }

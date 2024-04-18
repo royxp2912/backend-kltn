@@ -1,5 +1,4 @@
 import { DetailMonthDto } from './dto';
-import { TopProductInfo, TopUserInfo } from './types';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/schemas/User.schema';
@@ -7,8 +6,9 @@ import { Order } from 'src/schemas/Order.schema';
 import mongoose, { Model, Types } from 'mongoose';
 import { Variant } from 'src/schemas/Variant.schema';
 import { Product } from 'src/schemas/Product.schema';
-import { DAY_WEEK, TYPE_REVENUE } from 'src/constants/dto..enum';
+import { TopProductInfo, TopUserInfo } from './types';
 import { ProductsService } from 'src/products/products.service';
+import { DAY_WEEK, TYPE_REVENUE } from 'src/constants/dto..enum';
 import { StartEndOfDay, StartEndOfMonth, StartEndOfMonthAgo, StartEndOfWeek } from './dateUtils';
 
 @Injectable()

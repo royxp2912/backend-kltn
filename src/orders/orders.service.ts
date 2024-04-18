@@ -1,3 +1,4 @@
+// import * as VNPay from 'vnpay';
 import { Model, Types } from 'mongoose';
 import { PaginationRes } from './types';
 import { InjectModel } from '@nestjs/mongoose';
@@ -15,9 +16,12 @@ import {
 } from './dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { CouponsService } from 'src/coupons/coupons.service';
+import { VNPay } from 'vnpay';
 
 @Injectable()
 export class OrdersService {
+    private vnpay: VNPay;
+
     constructor(
         private readonly cartsService: CartsService,
         private readonly couponsService: CouponsService,
@@ -28,7 +32,13 @@ export class OrdersService {
         private readonly deliveryAddressService: DeliveryAddressService,
         @InjectModel(User.name) private readonly userModel: Model<User>,
         @InjectModel(Order.name) private readonly orderModel: Model<Order>,
-    ) { }
+    ) {
+        this.vnpay = new VNPay({
+            vnpayHost: 'https://sandbox.vnpayment.vn',
+            tmnCode: process.env.VNP_TMNCODE,
+            secureSecret: process.env.VNP_HASHSECRET,
+        });
+    }
 
     // CREATE ===============================================
     async create(createOrderDto: CreateOrderDto) {
@@ -241,6 +251,27 @@ export class OrdersService {
     // ====================================================================================================
 
     // DELETE ===============================================
+
+
+    // =============================================== VNPAY ===============================================
+    generatePaymentUrl(orderId: Types.ObjectId, total: number): string {
+        const params = {
+            vnp_TxnRef: "123436",
+            vnp_IpAddr: "1.1.1.1",
+            vnp_Amount: total * 100,
+            vnp_OrderInfo: 'Payment for order ' + orderId,
+            vnp_OrderType: 'billpayment',
+            vnp_ReturnUrl: process.env.VNP_RETURNURL,
+        };
+
+        return this.vnpay.buildPaymentUrl(params);
+    }
+
+    validatePaymentCallback(query: any) {
+        return this.vnpay.verifyIpnCall({ ...query });
+    }
+    // =============================================== VNPAY ===============================================
+
 
     // =============================================== SPECIAL ===============================================
     async convertDeliveryToOrder(dlvAddId: Types.ObjectId): Promise<Types.ObjectId> {
