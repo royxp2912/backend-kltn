@@ -3,7 +3,7 @@ import { DateUtilRes } from "../types";
 export const StartEndOfWeek = (day: number, month: number, year: number): DateUtilRes => {
     const today = new Date(year, month, day);
     let startOfWeek = new Date(today);
-    let endOfWeek = new Date(today);;
+    let endOfWeek = new Date(today);
 
     if (today.getDay() === 0) {
         startOfWeek.setDate(today.getDate() - 6);

@@ -1,4 +1,5 @@
 import { DetailMonthDto } from './dto';
+import { StartEndOfMonth } from './dateUtils';
 import { RevenueService } from './revenue.service';
 import { Controller, Get, Query } from '@nestjs/common';
 
@@ -7,6 +8,24 @@ export class RevenueController {
     constructor(private readonly revenueService: RevenueService) { }
 
     // ========================================= READ =========================================
+    @Get("products/hot")
+    async hotProductsMonthAgo() {
+        const result = await this.revenueService.hotProductMonthAgo();
+        return { message: "Get Hot Products succeed.", result, total: result.length }
+    }
+
+    @Get("products/top")
+    async topProductsThisMonth() {
+        const result = await this.revenueService.topProductThisMonth();
+        return { message: "Get Top Products This Month succeed.", result, total: result.length }
+    }
+
+    @Get("users/top")
+    async topUsersThisMonth() {
+        const result = await this.revenueService.topUserThisMonth();
+        return { message: "Get Top Users This Month succeed.", result, total: result.length }
+    }
+
     @Get("products/detail/by-month")
     async detailTotalProductSoldOfMonth(@Query() detailMonthDto: DetailMonthDto) {
         const result = await this.revenueService.detailTotalProductSoldOfMonth(detailMonthDto);
@@ -117,8 +136,12 @@ export class RevenueController {
 
     // ======================================== TESST ========================================
     @Get("test")
-    test() {
-        const result = this.revenueService.test();
-        return { result }
+    async test() {
+        const today = new Date();
+        const time = StartEndOfMonth(today.getMonth() + 1, today.getFullYear());
+        const firstOfMonth = time.start;
+        const firstOfNextMonth = time.end;
+        const result = await this.revenueService.topUserThisMonth();
+        return { message: "abc", result }
     }
 }

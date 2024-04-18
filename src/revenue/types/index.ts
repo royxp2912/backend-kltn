@@ -1,2 +1,3 @@
+export * from "./TopUserInfo.type";
 export * from "./DateUtilRes.type";
-export * from "./TypeAndPercent.type";
+export * from "./TopProductInfo.type";

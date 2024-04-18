@@ -1,23 +1,81 @@
+import { DetailMonthDto } from './dto';
+import { TopProductInfo, TopUserInfo } from './types';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { DAY_WEEK, TYPE_REVENUE } from 'src/constants/dto..enum';
-import { Order } from 'src/schemas/Order.schema';
-import { Product } from 'src/schemas/Product.schema';
 import { User } from 'src/schemas/User.schema';
-import { StartEndOfDay, StartEndOfMonth, StartEndOfWeek } from './dateUtils';
-import { DetailMonthDto } from './dto';
-import { TypeAndPercent } from './types';
+import { Order } from 'src/schemas/Order.schema';
+import mongoose, { Model, Types } from 'mongoose';
+import { Variant } from 'src/schemas/Variant.schema';
+import { Product } from 'src/schemas/Product.schema';
+import { DAY_WEEK, TYPE_REVENUE } from 'src/constants/dto..enum';
+import { ProductsService } from 'src/products/products.service';
+import { StartEndOfDay, StartEndOfMonth, StartEndOfMonthAgo, StartEndOfWeek } from './dateUtils';
 
 @Injectable()
 export class RevenueService {
     constructor(
         @InjectModel(User.name) private readonly userModel: Model<User>,
         @InjectModel(Order.name) private readonly orderModel: Model<Order>,
-        @InjectModel(User.name) private readonly productModel: Model<User>,
+        @InjectModel(Product.name) private readonly productModel: Model<Product>,
+        @InjectModel(Variant.name) private readonly variantModel: Model<Variant>,
+        private readonly productsService: ProductsService,
     ) { }
 
     // ========================================= API =========================================
+    async hotProductMonthAgo() {
+        const today = new Date();
+        const time = StartEndOfMonthAgo(today.getDate(), today.getMonth(), today.getFullYear());
+        const startDay = time.start;
+        const endDay = time.end;
+
+        const listSold = await this.listProductSoldOfTime(startDay, endDay);
+        listSold.sort((a, b) => b.sold - a.sold);
+        const handleList = await Promise.all(listSold.map(item => this.productsService.fillInfoOneProduct(item.product, null)));
+        if (handleList.length > 8) handleList.length = 8;
+        return handleList;
+    }
+
+    async topProductThisMonth() {
+        const today = new Date();
+        const time = StartEndOfMonth(today.getMonth() + 1, today.getFullYear());
+        const firstOfMonth = time.start;
+        const firstOfNextMonth = time.end;
+
+        const listSold = await this.listProductSoldOfTime(firstOfMonth, firstOfNextMonth);
+        listSold.sort((a, b) => b.sold - a.sold);
+        const handleList = await Promise.all(listSold.map(item => this.fillInfoTopProduct(item.product, item.sold)));
+
+        if (listSold.length < 5) {
+            for (let i = listSold.length; i < 5; i++) {
+                const nullObject = { id: null, name: "", image: "", sold: 0 };
+                handleList.push(nullObject);
+            }
+        }
+        handleList.length = 5;
+
+        return handleList;
+    }
+
+    async topUserThisMonth() {
+        const today = new Date();
+        const time = StartEndOfMonth(today.getMonth() + 1, today.getFullYear());
+        const firstOfMonth = time.start;
+        const firstOfNextMonth = time.end;
+
+        const listBuy = await this.listUserBuyOfTime(firstOfMonth, firstOfNextMonth);
+        listBuy.sort((a, b) => b.spent - a.spent);
+        const handleList = await Promise.all(listBuy.map(item => this.fillInfoTopUser(item.user, item.spent)));
+
+        if (listBuy.length < 5) {
+            for (let i = listBuy.length; i < 5; i++) {
+                const nullObject = { id: null, name: "", image: "", spent: 0 };
+                handleList.push(nullObject);
+            }
+        }
+        handleList.length = 5;
+
+        return handleList;
+    }
 
     // ################################## Detail ##################################
     async detailTotalProductSoldOfMonth(detailMonthDto: DetailMonthDto) {
@@ -407,6 +465,80 @@ export class RevenueService {
         if (now < last) return TYPE_REVENUE.REDUCE;
         if (now > last) return TYPE_REVENUE.INCREASE;
         return TYPE_REVENUE.NOCHANGE
+    }
+
+    async fillInfoTopProduct(proId: Types.ObjectId, sold: number): Promise<TopProductInfo> {
+        const infoProduct = await this.productModel.findById(proId);
+        const imgUrl = await this.variantModel.findOne({ product: proId });
+
+        return {
+            id: proId,
+            name: infoProduct.name,
+            image: imgUrl.image,
+            sold: sold,
+        };
+    }
+
+    async fillInfoTopUser(userId: Types.ObjectId, spent: number): Promise<TopUserInfo> {
+        const info = await this.userModel.findById(userId);
+
+        return {
+            id: userId,
+            name: info.fullName,
+            image: info.avatar,
+            spent: spent,
+        };
+    }
+
+    async listProductSoldOfTime(start: Date, end: Date) {
+        const listProduct = await this.orderModel.find({
+            createdAt: {
+                $gte: start,
+                $lte: end,
+            },
+        }).select('items.product items.quantity');
+
+        const soldList = listProduct.flatMap((cur) => cur.items.map((item) => { return { product: item.product, sold: item.quantity } }));
+
+        const productSoldMap = {}
+        soldList.forEach(item => {
+            if (productSoldMap[item.product as any]) {
+                productSoldMap[item.product as any] += item.sold;
+            } else {
+                productSoldMap[item.product as any] = item.sold;
+            }
+        });
+
+        const result = Object.keys(productSoldMap).map(product => {
+            return { product: new mongoose.Types.ObjectId(product), sold: productSoldMap[product] as number };
+        });
+
+        return result;
+    }
+
+    async listUserBuyOfTime(start: Date, end: Date) {
+        const listUser = await this.orderModel.find({
+            createdAt: {
+                $gte: start,
+                $lte: end,
+            },
+        }).select('user total');
+
+        const buyList = listUser.map((item) => { return { user: item.user, spent: item.total } });
+        const buyMap = {}
+        buyList.forEach(item => {
+            if (buyMap[item.user as any]) {
+                buyMap[item.user as any] += item.spent;
+            } else {
+                buyMap[item.user as any] = item.spent;
+            }
+        });
+
+        const result = Object.keys(buyMap).map(user => {
+            return { user: new mongoose.Types.ObjectId(user), spent: buyMap[user] as number };
+        });
+
+        return result;
     }
 
     // ======================================== test ========================================
