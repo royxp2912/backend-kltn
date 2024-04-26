@@ -5,6 +5,9 @@ import { ORDER_PAYMENT_METHOD, ORDER_STATUS } from "src/constants/schema.enum";
 
 @Schema({ timestamps: true })
 export class Order {
+    @Prop({ required: true, unique: true })
+    orderId: string;
+
     @Prop({ type: SchemaTypes.ObjectId, ref: 'User', required: true })
     user: Types.ObjectId;
 
@@ -42,6 +45,9 @@ export class Order {
 
     @Prop({ default: 0 })
     discountAmount: number;
+
+    @Prop()
+    createdAt: Date;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

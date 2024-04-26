@@ -25,4 +25,8 @@ export class OrderAddressService {
         return await this.orderDeliveryModel.findByIdAndDelete(addId);
     }
 
+    async deletetAll() {
+        return await this.orderDeliveryModel.deleteMany({});
+    }
+
 }

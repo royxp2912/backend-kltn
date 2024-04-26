@@ -1,22 +1,23 @@
-// import * as VNPay from 'vnpay';
+import { VNPay } from 'vnpay';
+import { v4 as uuidv4 } from 'uuid';
 import { Model, Types } from 'mongoose';
 import { PaginationRes } from './types';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/schemas/User.schema';
 import { Order } from 'src/schemas/Order.schema';
 import { CartsService } from 'src/carts/carts.service';
-import { ORDER_STATUS } from 'src/constants/schema.enum';
+import { Cron, CronExpression } from "@nestjs/schedule";
+import { ORDER_PAYMENT_METHOD, ORDER_STATUS } from 'src/constants/schema.enum';
+import { CouponsService } from 'src/coupons/coupons.service';
 import { ProductsService } from 'src/products/products.service';
 import { VariantsService } from 'src/variants/variants.service';
 import { OrderAddressService } from 'src/orderaddress/orderaddress.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 import { DeliveryAddressService } from 'src/deliveryaddress/deliveryAddress.service';
 import { BadGatewayException, BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import {
-    CreateOrderDto, PaginationDto, PaginationKeywordDto, PaginationStatusDto, PaginationUserAStatusDto, PaginationUserDto
+    CreateOrderDto, HandleResponseGetListDto, PaginationDto, PaginationKeywordDto, PaginationStatusDto, PaginationUserAStatusDto, PaginationUserDto, PaymentUrlDto
 } from './dto';
-import { NotificationsService } from 'src/notifications/notifications.service';
-import { CouponsService } from 'src/coupons/coupons.service';
-import { VNPay } from 'vnpay';
 
 @Injectable()
 export class OrdersService {
@@ -58,17 +59,17 @@ export class OrdersService {
 
         const orderAddress = await this.convertDeliveryToOrder(others.deliveryAddress);
 
-        const newOrder = new this.orderModel({ ...others, deliveryAddress: orderAddress });
+        const newOrder = new this.orderModel({ ...others, deliveryAddress: orderAddress, orderId: uuidv4() });
         newOrder.save();
 
         await Promise.all(newOrder.items.map(item => {
-            this.cartsService.removeFromCart({ user: newOrder.user, product: item.product });
+            // this.cartsService.removeFromCart({ user: newOrder.user, product: item.product });
             this.variantsService.reduceQuantity({ product: item.product, color: item.color, size: item.size, quantity: item.quantity });
             this.productsService.updateSold(item.product, item.quantity);
         }))
-        if (coupon) await this.couponsService.deleteByUserACoupon(coupon);
+        if (coupon) await this.couponsService.deleteByUserACoupon(coupon)
 
-        await this.notificationsService.sendPush({ user: newOrder.user, title: "New Order!!!", body: `You just placed a new order! Try accessing the application to see details.` });
+        // await this.notificationsService.sendPush({ user: newOrder.user, title: "New Order!!!", body: `You just placed a new order! Try accessing the application to see details.` });
     }
 
     // READ =================================================
@@ -85,17 +86,10 @@ export class OrdersService {
             ],
         })
             .sort({ createdAt: -1 })
-            .limit(pageSize)
-            .skip(pageSize * (pageNumber - 1))
             .populate({ path: 'deliveryAddress', select: '-createdAt -updatedAt -__v' })
             .select("-__v -createdAt -updatedAt");
 
-        const pages: number = Math.ceil(found.length / pageSize);
-        const result: PaginationRes = {
-            pages: pages,
-            data: found,
-        }
-        return result;
+        return this.handleResponseGetList({ listOrders: found, pageSize, pageNumber });
     }
 
     async getById(orderId: Types.ObjectId) {
@@ -118,17 +112,10 @@ export class OrdersService {
 
         const found = await this.orderModel.find({ user, status })
             .sort({ createdAt: -1 })
-            .limit(pageSize)
-            .skip(pageSize * (pageNumber - 1))
             .populate({ path: 'deliveryAddress', select: '-createdAt -updatedAt -__v' })
             .select("-__v -createdAt -updatedAt");
 
-        const pages: number = Math.ceil(found.length / pageSize);
-        const result: PaginationRes = {
-            pages: pages,
-            data: found,
-        }
-        return result;
+        return this.handleResponseGetList({ listOrders: found, pageSize, pageNumber });
     }
 
     async getByUser(paginationUserDto: PaginationUserDto) {
@@ -141,17 +128,10 @@ export class OrdersService {
 
         const found = await this.orderModel.find({ user })
             .sort({ createdAt: -1 })
-            .limit(pageSize)
-            .skip(pageSize * (pageNumber - 1))
             .populate({ path: 'deliveryAddress', select: '-createdAt -updatedAt -__v' })
             .select("-__v -createdAt -updatedAt");
 
-        const pages: number = Math.ceil(found.length / pageSize);
-        const result: PaginationRes = {
-            pages: pages,
-            data: found,
-        }
-        return result;
+        return this.handleResponseGetList({ listOrders: found, pageSize, pageNumber });
     }
 
     async getByStatus(paginationStatusDto: PaginationStatusDto) {
@@ -160,17 +140,10 @@ export class OrdersService {
         const pageNumber = paginationStatusDto.pageNumber || 1;
         const found = await this.orderModel.find({ status })
             .sort({ createdAt: -1 })
-            .limit(pageSize)
-            .skip(pageSize * (pageNumber - 1))
             .populate({ path: 'deliveryAddress', select: '-createdAt -updatedAt -__v' })
             .select("-__v -createdAt -updatedAt");
 
-        const pages: number = Math.ceil(found.length / pageSize);
-        const result: PaginationRes = {
-            pages: pages,
-            data: found,
-        }
-        return result;
+        return this.handleResponseGetList({ listOrders: found, pageSize, pageNumber });
     }
 
     async getAll(paginationDto: PaginationDto) {
@@ -178,17 +151,10 @@ export class OrdersService {
         const pageNumber = paginationDto.pageNumber || 1;
         const found = await this.orderModel.find()
             .sort({ createdAt: -1 })
-            .limit(pageSize)
-            .skip(pageSize * (pageNumber - 1))
             .populate({ path: 'deliveryAddress', select: '-createdAt -updatedAt -__v' })
             .select("-__v -createdAt -updatedAt");
 
-        const pages: number = Math.ceil(found.length / pageSize);
-        const result: PaginationRes = {
-            pages: pages,
-            data: found,
-        }
-        return result;
+        return this.handleResponseGetList({ listOrders: found, pageSize, pageNumber });
     }
 
     // UPDATE ===============================================
@@ -251,15 +217,18 @@ export class OrdersService {
     // ====================================================================================================
 
     // DELETE ===============================================
-
+    async deleteAll_Spec() {
+        await this.orderAddressService.deletetAll();
+        return await this.orderModel.deleteMany();
+    }
 
     // =============================================== VNPAY ===============================================
-    generatePaymentUrl(orderId: Types.ObjectId, total: number): string {
+    generatePaymentUrl(paymentUrlDto: PaymentUrlDto): string {
         const params = {
-            vnp_TxnRef: "123436",
+            vnp_TxnRef: paymentUrlDto.orderId,
             vnp_IpAddr: "1.1.1.1",
-            vnp_Amount: total * 100,
-            vnp_OrderInfo: 'Payment for order ' + orderId,
+            vnp_Amount: paymentUrlDto.total * 24 * 1000,
+            vnp_OrderInfo: 'Payment for order ' + paymentUrlDto.orderId,
             vnp_OrderType: 'billpayment',
             vnp_ReturnUrl: process.env.VNP_RETURNURL,
         };
@@ -295,5 +264,35 @@ export class OrdersService {
         });
         if (!found) return false;
         return true;
+    }
+
+    async handleResponseGetList(handleResponseGetListDto: HandleResponseGetListDto): Promise<PaginationRes> {
+        const { listOrders, pageSize, pageNumber } = handleResponseGetListDto;
+
+        const pages: number = Math.ceil(listOrders.length / pageSize);
+        const final = listOrders.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+        const result: PaginationRes = { pages: pages, data: final }
+
+        return result;
+    }
+
+    @Cron(CronExpression.EVERY_HOUR)
+    async cancelOrderExpirePayment() {
+        const listOrderPayment = await this.orderModel.find({
+            paymentMethod: ORDER_PAYMENT_METHOD.VNPAY,
+            status: ORDER_STATUS.Confirming,
+            isPaid: false,
+        }).select("createdAt");
+        console.log("loading...");
+
+        const currentTime = new Date();
+        const maxAgePayment = 5 * 60 * 60 * 1000; // 5 hour
+        for (const order of listOrderPayment) {
+            const createdAt = new Date(order.createdAt);
+            if (currentTime.getTime() - createdAt.getTime() > maxAgePayment) {
+                await this.cancelOrder(order._id);
+                // code gửi thông báo cho user rằng order bị hủy do hết hạn thanh toán.
+            }
+        }
     }
 }

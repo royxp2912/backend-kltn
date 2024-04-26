@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
 import { AcptPushDto, PaginationUserDto, SendPushDto } from './dto';
@@ -30,5 +30,11 @@ export class NotificationsController {
     async getNotificationOfUser(@Query() paginationUserDto: PaginationUserDto) {
         const result = await this.notificationsService.getNotificationOfUser(paginationUserDto);
         return { message: "Get notification of user succeed.", result: result.data, pages: result.pages }
+    }
+
+    @Delete()
+    async deleteAll() {
+        await this.notificationsService.deleteAll();
+        return { message: "Delete all notification succeed." }
     }
 }

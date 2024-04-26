@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Res } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
-import { CreateOrderDto, PaginationDto, PaginationKeywordDto, PaginationStatusDto, PaginationUserAStatusDto, PaginationUserDto } from './dto';
+import { CreateOrderDto, PaginationDto, PaginationKeywordDto, PaginationStatusDto, PaginationUserAStatusDto, PaginationUserDto, PaymentUrlDto } from './dto';
 import { OrdersService } from './orders.service';
 
 @Controller('orders')
@@ -32,8 +32,6 @@ export class OrdersController {
 
     @Get("find/by-keyword")
     async findByKeyword(@Query() paginationKeywordDto: PaginationKeywordDto) {
-        console.log(paginationKeywordDto.keyword);
-
         const result = await this.ordersService.findByKeyword(paginationKeywordDto);
         return { message: "Get Order succeed.", result: result.data, pages: result.pages }
     }
@@ -109,19 +107,24 @@ export class OrdersController {
     // ====================================================================================================
 
     // DELETE ===============================================
+    @Delete("spec/deleteAll")
+    async spec_deleteAll() {
+        this.ordersService.deleteAll_Spec();
+        return { message: "Deletet all order succeed." }
+    }
 
     // =============================================== VNPAY ===============================================
-    @Get("payment-url/:orderId")
-    async generatePaymentUrl(@Param('orderId', new ValidateObjectIdPipe()) orderId: Types.ObjectId) {
-        const result = this.ordersService.generatePaymentUrl(orderId, 200);
+    @Get("create/payment-url")
+    async generatePaymentUrl(@Query() paymentUrlDto: PaymentUrlDto) {
+        const result = this.ordersService.generatePaymentUrl(paymentUrlDto);
         return { message: "Create payment-url succeed.", result }
     }
 
     @Get("vnpay/callback")
-    async callbackVNPay(@Query() query) {
+    async callbackVNPay(@Query() query, @Res({ passthrough: true }) res) {
         const result = this.ordersService.validatePaymentCallback(query);
         console.log("result callback; ", result);
-
-        return { message: "call back payment-url succeed.", result }
+        if (!result.isSuccess) return res.redirect(`https://www.nimo.tv/mixi?error=${result.message}`);
+        return res.redirect("https://www.facebook.com/");
     }
 }

@@ -38,14 +38,14 @@ export class CartsController {
     async getById(@Param('userId', new ValidateObjectIdPipe()) userId: Types.ObjectId) {
         const result = await this.cartsService.getByUser(userId);
 
-        return { message: "Get Cart Of User Succeed", result };
+        return { message: "Get Cart Of User Succeed", result, total: result.items.length };
     }
     // DELETE =============================================
     @Delete("removeFromCart")
     async removeFromCart(@Query() removeFromCartDto: RemoveFromCartDto) {
         await this.cartsService.removeFromCart(removeFromCartDto);
 
-        return { message: "Add Product To Cart Of User Succeed" };
+        return { message: "Remove Product To Cart Of User Succeed" };
     }
 
 }

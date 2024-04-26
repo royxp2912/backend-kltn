@@ -97,3 +97,9 @@ export enum COUPON_STATUS {
     Active = 'Active',
     Locked = 'Locked'
 }
+
+export enum NOTI_TYPE {
+    ORDER = 'ORDER',
+    COUPON = 'COUPON',
+    OTHERS = 'OTHERS',
+}

@@ -6,7 +6,7 @@ import { Notification } from 'src/schemas/Notification.schema';
 import { Model, Types } from 'mongoose';
 import { NotificationToken } from 'src/schemas/NotificationToken.schema';
 import { NOTI_TOKEN_STATUS } from 'src/constants/schema.enum';
-import { AcptPushDto, PaginationUserDto, SendPushDto } from './dto';
+import { AcptPushDto, CreateNotiDto, PaginationUserDto, SendPushDto } from './dto';
 import { PaginationUserRes } from './types';
 
 firebase.initializeApp({
@@ -22,29 +22,18 @@ export class NotificationsService {
         @InjectModel(NotificationToken.name) private readonly notificationTokenModel: Model<NotificationToken>,
     ) { }
 
-    async acptPushNotification(acptPushDto: AcptPushDto): Promise<void> {
-        const { user, token } = acptPushDto;
-        await this.notificationTokenModel.updateMany(
-            { user },
-            { $set: { status: NOTI_TOKEN_STATUS.INACTIVE } }
-        )
-
-        const newToken = new this.notificationTokenModel({ user, noti_token: token });
-        await newToken.save();
-    }
-
-    async disablePushNotification(userId: Types.ObjectId): Promise<void> {
-        await this.notificationTokenModel.updateMany(
-            { user: userId },
-            { $set: { status: NOTI_TOKEN_STATUS.INACTIVE } }
-        )
+    async createNotification(createNotiDto: CreateNotiDto) {
+        const newNoti = new this.notificationModel(createNotiDto);
+        await newNoti.save();
     }
 
     async getNotificationOfUser(paginationUserDto: PaginationUserDto): Promise<PaginationUserRes> {
         const userId = paginationUserDto.user;
         const pageSize = paginationUserDto.pageSize || 5;
         const pageNumber = paginationUserDto.pageNumber || 1;
-        const found = await this.notificationModel.find({ user: userId }).select("-__v -user -createdAt -updatedAt");
+        const found = await this.notificationModel.find({ user: userId })
+            .sort({ createAt: -1 })
+            .select("-__v -user -updatedAt");
 
         const pages: number = Math.ceil(found.length / pageSize);
         const final = found.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
@@ -52,6 +41,7 @@ export class NotificationsService {
         return result;
     }
 
+    //  --- PLUS
     async sendPush(sendPushDto: SendPushDto): Promise<void> {
         const { user, title, body } = sendPushDto;
         try {
@@ -74,5 +64,28 @@ export class NotificationsService {
         } catch (error) {
             return error;
         }
+    }
+
+    async acptPushNotification(acptPushDto: AcptPushDto): Promise<void> {
+        const { user, token } = acptPushDto;
+        await this.notificationTokenModel.updateMany(
+            { user },
+            { $set: { status: NOTI_TOKEN_STATUS.INACTIVE } }
+        )
+
+        const newToken = new this.notificationTokenModel({ user, noti_token: token });
+        await newToken.save();
+    }
+
+    async disablePushNotification(userId: Types.ObjectId): Promise<void> {
+        await this.notificationTokenModel.updateMany(
+            { user: userId },
+            { $set: { status: NOTI_TOKEN_STATUS.INACTIVE } }
+        )
+    }
+
+    // --- DELETE
+    async deleteAll() {
+        await this.notificationModel.deleteMany({});
     }
 }
