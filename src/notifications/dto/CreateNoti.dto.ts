@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { IsObjectId } from "class-validator-mongo-object-id";
 import { NOTI_TYPE } from "src/constants/schema.enum";
 
@@ -9,14 +9,14 @@ export class CreateNotiDto {
     user: Types.ObjectId;
 
     @IsString()
-    @IsNotEmpty()
-    title: string;
+    @IsOptional()
+    title?: string;
 
     @IsString()
-    @IsNotEmpty()
-    body: string;
+    @IsOptional()
+    body?: string;
 
-    @IsString()
+    @IsEnum(NOTI_TYPE)
     @IsOptional()
     type?: NOTI_TYPE;
 

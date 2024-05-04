@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Res } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
+import { CANCEL_ORDER_TYPE } from './constants';
 import { CreateOrderDto, PaginationDto, PaginationKeywordDto, PaginationStatusDto, PaginationUserAStatusDto, PaginationUserDto, PaymentUrlDto } from './dto';
 import { OrdersService } from './orders.service';
 
@@ -13,8 +14,8 @@ export class OrdersController {
     // CREATE ===============================================
     @Post()
     async create(@Body() createOrderDto: CreateOrderDto) {
-        await this.ordersService.create(createOrderDto);
-        return { message: "Create Order succeed." }
+        const result = await this.ordersService.create(createOrderDto);
+        return { message: "Create Order succeed.", result }
     }
 
     // READ =================================================
@@ -74,7 +75,7 @@ export class OrdersController {
 
     @Patch("cancel/:orderId")
     async cancelOrder(@Param('orderId', new ValidateObjectIdPipe()) orderId: Types.ObjectId) {
-        await this.ordersService.cancelOrder(orderId);
+        await this.ordersService.cancelOrder(orderId, CANCEL_ORDER_TYPE.DUE_TO_USER);
         return { message: "Cancel Order succeed." }
     }
 
@@ -125,6 +126,9 @@ export class OrdersController {
         const result = this.ordersService.validatePaymentCallback(query);
         console.log("result callback; ", result);
         if (!result.isSuccess) return res.redirect(`https://www.nimo.tv/mixi?error=${result.message}`);
+
+        // Nếu thanh toán thành công - đổi trạng thái đơn hàng sang đã thanh toán
+        await this.ordersService.confirmPaid(result.vnp_TxnRef);
         return res.redirect("https://www.facebook.com/");
     }
 }

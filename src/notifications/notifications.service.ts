@@ -5,9 +5,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Notification } from 'src/schemas/Notification.schema';
 import { Model, Types } from 'mongoose';
 import { NotificationToken } from 'src/schemas/NotificationToken.schema';
-import { NOTI_TOKEN_STATUS } from 'src/constants/schema.enum';
+import { NOTI_TOKEN_STATUS, NOTI_TYPE } from 'src/constants/schema.enum';
 import { AcptPushDto, CreateNotiDto, PaginationUserDto, SendPushDto } from './dto';
 import { PaginationUserRes } from './types';
+import { renderOrderCancelDueToAdmin, renderOrderCancelDueToExpiration, renderOrderCancelDueToUser, renderOrderSucceed } from './renderMessageNoti';
 
 firebase.initializeApp({
     credential: firebase.credential.cert(
@@ -23,6 +24,31 @@ export class NotificationsService {
     ) { }
 
     async createNotification(createNotiDto: CreateNotiDto) {
+        const { type } = createNotiDto;
+        switch (type) {
+            case NOTI_TYPE.ORDER_SUCCEED:
+                createNotiDto.title = "ORDER SUCCEED"
+                createNotiDto.body = renderOrderSucceed(createNotiDto.relation);
+                break;
+
+            case NOTI_TYPE.ORDER_CANCELLED_BY_USER:
+                createNotiDto.title = "ORDER CANCELLED"
+                createNotiDto.body = renderOrderCancelDueToUser(createNotiDto.relation);
+                break;
+
+            case NOTI_TYPE.ORDER_CANCELLED_BY_ADMIN:
+                createNotiDto.title = "ORDER CANCELLED"
+                createNotiDto.body = renderOrderCancelDueToAdmin(createNotiDto.relation);
+                break;
+
+            case NOTI_TYPE.ORDER_CANCELLED_DUE_TO_EXPIRATION:
+                createNotiDto.title = "ORDER CANCELLED"
+                createNotiDto.body = renderOrderCancelDueToExpiration(createNotiDto.relation);
+                break;
+
+            default: console.log("default");
+
+        }
         const newNoti = new this.notificationModel(createNotiDto);
         await newNoti.save();
     }
