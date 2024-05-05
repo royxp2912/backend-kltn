@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Res } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
-import { CreateOrderDto, PaginationDto, PaginationKeywordDto, PaginationStatusDto, PaginationUserAStatusDto, PaginationUserDto } from './dto';
+import { CANCEL_ORDER_TYPE } from './constants';
+import { CreateOrderDto, PaginationDto, PaginationKeywordDto, PaginationStatusDto, PaginationUserAStatusDto, PaginationUserDto, PaymentUrlDto } from './dto';
 import { OrdersService } from './orders.service';
 
 @Controller('orders')
@@ -13,8 +14,8 @@ export class OrdersController {
     // CREATE ===============================================
     @Post()
     async create(@Body() createOrderDto: CreateOrderDto) {
-        await this.ordersService.create(createOrderDto);
-        return { message: "Create Order succeed." }
+        const result = await this.ordersService.create(createOrderDto);
+        return { message: "Create Order succeed.", result }
     }
 
     // READ =================================================
@@ -32,8 +33,6 @@ export class OrdersController {
 
     @Get("find/by-keyword")
     async findByKeyword(@Query() paginationKeywordDto: PaginationKeywordDto) {
-        console.log(paginationKeywordDto.keyword);
-
         const result = await this.ordersService.findByKeyword(paginationKeywordDto);
         return { message: "Get Order succeed.", result: result.data, pages: result.pages }
     }
@@ -76,7 +75,7 @@ export class OrdersController {
 
     @Patch("cancel/:orderId")
     async cancelOrder(@Param('orderId', new ValidateObjectIdPipe()) orderId: Types.ObjectId) {
-        await this.ordersService.cancelOrder(orderId);
+        await this.ordersService.cancelOrder(orderId, CANCEL_ORDER_TYPE.DUE_TO_USER);
         return { message: "Cancel Order succeed." }
     }
 
@@ -109,4 +108,27 @@ export class OrdersController {
     // ====================================================================================================
 
     // DELETE ===============================================
+    @Delete("spec/deleteAll")
+    async spec_deleteAll() {
+        this.ordersService.deleteAll_Spec();
+        return { message: "Deletet all order succeed." }
+    }
+
+    // =============================================== VNPAY ===============================================
+    @Get("create/payment-url")
+    async generatePaymentUrl(@Query() paymentUrlDto: PaymentUrlDto) {
+        const result = this.ordersService.generatePaymentUrl(paymentUrlDto);
+        return { message: "Create payment-url succeed.", result }
+    }
+
+    @Get("vnpay/callback")
+    async callbackVNPay(@Query() query, @Res({ passthrough: true }) res) {
+        const result = this.ordersService.validatePaymentCallback(query);
+        console.log("result callback; ", result);
+        if (!result.isSuccess) return res.redirect(`https://www.nimo.tv/mixi?error=${result.message}`);
+
+        // Nếu thanh toán thành công - đổi trạng thái đơn hàng sang đã thanh toán
+        await this.ordersService.confirmPaid(result.vnp_TxnRef);
+        return res.redirect("https://www.facebook.com/");
+    }
 }

@@ -12,13 +12,16 @@ import { VariantsModule } from './variants/variants.module';
 import { CommentsModule } from './comments/comments.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { FavoritesModule } from './favorites/favorites.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { RevenueModule } from './revenue/revenue.module';
 import { CategoriesModule } from './categories/categories.module';
 import { OrderAddressModule } from './orderaddress/orderaddress.module';
-import { DeliveryAddressModule } from './deliveryaddress/deliveryaddress.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { DeliveryAddressModule } from './deliveryaddress/deliveryaddress.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -57,6 +60,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     OrderAddressModule,
     DeliveryAddressModule,
     NotificationsModule,
+    RevenueModule,
   ],
   controllers: [],
   providers: [],

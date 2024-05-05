@@ -1,9 +1,9 @@
+import { AppModule } from './app.module';
+import * as cookieParser from 'cookie-parser';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './utils/exceptions-filter/http.exception';
 import { TransformResponseInterceptor } from './utils/interceptors/response.interceptor';
-import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
