@@ -57,6 +57,8 @@ export class AuthsService {
 
     async sendOTP(sendOTPDto: SendOTPDto): Promise<number> {
         const OTP = crypto.randomInt(100000, 999999);
+        console.log(OTP);
+
 
         try {
             await this.mailerService.sendMail({
