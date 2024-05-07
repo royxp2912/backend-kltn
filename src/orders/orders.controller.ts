@@ -28,7 +28,7 @@ export class OrdersController {
     @Get("find/by-user-status")
     async getByUserAndStatus(@Query() paginationUserAStatusDto: PaginationUserAStatusDto) {
         const result = await this.ordersService.getByUserAStatus(paginationUserAStatusDto);
-        return { message: "Get Order succeed.", result: result.data, pages: result.pages }
+        return { message: "Get Order Of User by Status succeed.", result: result.data, pages: result.pages, total: result.total }
     }
 
     @Get("find/by-keyword")
@@ -40,7 +40,7 @@ export class OrdersController {
     @Get("find/by-user")
     async getByUser(@Query() paginationUserDto: PaginationUserDto) {
         const result = await this.ordersService.getByUser(paginationUserDto);
-        return { message: "Get Order succeed.", result: result.data, pages: result.pages }
+        return { message: "Get Order succeed.", result: result.data, pages: result.pages, total: result.total }
     }
 
     @Get("find/by-status")
