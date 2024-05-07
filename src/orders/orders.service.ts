@@ -303,7 +303,7 @@ export class OrdersService {
 
         const pages: number = Math.ceil(listOrders.length / pageSize);
         const final = listOrders.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
-        const result: PaginationRes = { pages: pages, data: final }
+        const result: PaginationRes = { total: listOrders.length, pages: pages, data: final }
 
         return result;
     }

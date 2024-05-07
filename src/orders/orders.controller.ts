@@ -46,7 +46,7 @@ export class OrdersController {
     @Get("find/by-status")
     async getByStatus(@Query() paginationStatusDto: PaginationStatusDto) {
         const result = await this.ordersService.getByStatus(paginationStatusDto);
-        return { message: "Get All Order By Status succeed.", result: result.data, pages: result.pages }
+        return { message: "Get All Order By Status succeed.", result: result.data, pages: result.pages, total: result.total }
     }
 
     @Get()
