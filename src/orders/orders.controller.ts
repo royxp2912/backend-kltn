@@ -52,7 +52,7 @@ export class OrdersController {
     @Get()
     async getAll(@Query() paginationDto: PaginationDto) {
         const result = await this.ordersService.getAll(paginationDto);
-        return { message: "Get All Order succeed.", result: result.data, pages: result.pages }
+        return { message: "Get All Order succeed.", result: result.data, pages: result.pages, total: result.total }
     }
 
     // UPDATE ===============================================

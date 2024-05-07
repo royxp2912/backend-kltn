@@ -9,6 +9,7 @@ import { NOTI_TOKEN_STATUS, NOTI_TYPE } from 'src/constants/schema.enum';
 import { AcptPushDto, CreateNotiDto, PaginationUserDto, SendPushDto } from './dto';
 import { PaginationUserRes } from './types';
 import { renderOrderCancelDueToAdmin, renderOrderCancelDueToExpiration, renderOrderCancelDueToUser, renderOrderSucceed } from './renderMessageNoti';
+import { Expo } from 'expo-server-sdk';
 
 firebase.initializeApp({
     credential: firebase.credential.cert(
@@ -18,6 +19,7 @@ firebase.initializeApp({
 
 @Injectable()
 export class NotificationsService {
+    private expo = new Expo();
     constructor(
         @InjectModel(Notification.name) private readonly notificationModel: Model<Notification>,
         @InjectModel(NotificationToken.name) private readonly notificationTokenModel: Model<NotificationToken>,
@@ -72,20 +74,17 @@ export class NotificationsService {
         const { user, title, body } = sendPushDto;
         try {
             const token = await this.notificationTokenModel.findOne({ user, status: NOTI_TOKEN_STATUS.ACTIVE });
-            const newNotification = new this.notificationModel(sendPushDto);
-            await newNotification.save();
+            // const newNotification = new this.notificationModel(sendPushDto);
+            // await newNotification.save();
 
             if (token) {
-                await firebase
-                    .messaging()
-                    .send({
-                        notification: { title, body },
-                        token: token.noti_token,
-                        android: { priority: 'high' },
-                    })
-                    .catch((error: any) => {
-                        console.error(error);
-                    });
+                await this.expo.sendPushNotificationsAsync([
+                    {
+                        to: token.noti_token,
+                        title: title,
+                        body: body,
+                    },
+                ])
             }
         } catch (error) {
             return error;
