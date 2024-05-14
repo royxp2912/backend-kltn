@@ -74,10 +74,7 @@ export class OrdersService {
 
         if (savedOrder.paymentMethod === ORDER_PAYMENT_METHOD.VNPAY) return this.generatePaymentUrl({ orderId: savedOrder.orderId, total: savedOrder.total });
 
-        await this.notificationsService.sendPush({ user: others.user, title: "New Order!!!", body: "Bạn vừa đặt một đơn hàng mới! Hãy truy cập vào ứng dụng để xem chi tiết đơn hàng." })
-
         return ORDER_PAYMENT_METHOD.COD;
-        // await this.notificationsService.sendPush({ user: newOrder.user, title: "New Order!!!", body: `You just placed a new order! Try accessing the application to see details.` });
     }
 
     // READ =================================================

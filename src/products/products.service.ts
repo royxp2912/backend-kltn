@@ -12,9 +12,10 @@ import { PRODUCT_BRAND, PRODUCT_STATUS } from 'src/constants/schema.enum';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import {
     CreateProductDto, GetAllProductDto, GetByCategoryDto, GetByStatusDto, HandleResponseFavoriteDto, HandleResponseGetListDto,
-    PaginationKeywordSortDto, UpdateProductDto
+    PaginationKeywordSortDto, PriceManagementDto, UpdatePriceDto, UpdateProductDto
 } from './dto';
 import { FavoritesService } from 'src/favorites/favorites.service';
+import { OPTION_PRICE_MANAGEMENT, PART_PRICE_MANAGEMENT, TYPE_PRICE_MANAGEMENT } from './constants';
 
 @Injectable()
 export class ProductsService {
@@ -29,9 +30,9 @@ export class ProductsService {
     ) { }
 
     // CREATE ========================================
-    async create(createProductDto: CreateProductDto): Promise<void> {
+    async create(createProductDto: CreateProductDto) {
         const newProduct = new this.productModel(createProductDto);
-        await newProduct.save();
+        return await newProduct.save();
     }
 
     // UPDATE ========================================
@@ -144,6 +145,22 @@ export class ProductsService {
         let isFavorite = false;
         if (userId) isFavorite = await this.favoritesService.checkProductIsFavorite(userId, proId);
         return { ...result, images, variants, randomVariant, reviews, isFavorite };
+    }
+
+    async getDetailProductByAdmin(proId: Types.ObjectId) {
+        const result = await this.productModel.findById(proId)
+            .populate({ path: "category", select: "name" })
+            .select("-__v -createdAt -updatedAt -status")
+            .lean();
+        if (!result) throw new NotFoundException("Product not found.");
+
+        // const images = await this.variantsService.getListImageByProduct(proId);
+        // const variants = await this.variantsService.getListColorAndSize(proId);
+        // const randomVariant = await this.variantsService.randomVarByProduct(proId);
+        const reviews = await this.commentsService.totalReviewOfProduct(proId);
+        const listVariants = await this.variantsService.getListVariantOfProduct(proId);
+
+        return { ...result, reviews, listVariants };
     }
 
     async getByCategory(getByCategoryDto: GetByCategoryDto): Promise<GetAllProductRes> {
@@ -270,5 +287,68 @@ export class ProductsService {
         const result: GetAllProductRes = { pages: pages, data: final }
 
         return result;
+    }
+
+    // ======================================== PRICE MANAGEMENT ========================================
+    async priceManagement(priceManagementDto: PriceManagementDto) {
+        const { part, ...others } = priceManagementDto;
+
+        const updateQuery = {};
+        if (others.type === TYPE_PRICE_MANAGEMENT.PERCENT) {
+            const changeValue = others.option === OPTION_PRICE_MANAGEMENT.INCREASE ? (1 + others.value / 100).toFixed(2) : (1 - others.value / 100).toFixed(2);
+            updateQuery["$mul"] = { "price": changeValue }
+        } else {
+            const changeValue = others.option === OPTION_PRICE_MANAGEMENT.INCREASE ? others.value : - others.value;
+            updateQuery["$inc"] = { "price": changeValue }
+        }
+        console.log("updateQuery: ", updateQuery);
+
+
+        switch (part) {
+            case PART_PRICE_MANAGEMENT.BRAND:
+                await this.updatePriceOfBrand({ ...others, updateQuery });
+                break;
+
+            case PART_PRICE_MANAGEMENT.CATEGORY:
+                await this.updatePriceOfCategory({ ...others, updateQuery });
+                break;
+
+            case PART_PRICE_MANAGEMENT.SELECTED:
+                await this.updatePriceOfSelected({ ...others, updateQuery });
+                break;
+
+            default: await this.updatePriceAll({ updateQuery });
+        }
+
+    }
+
+    async updatePriceOfBrand(updatePriceDto: UpdatePriceDto) {
+        const { brand, updateQuery } = updatePriceDto;
+
+        await this.productModel.updateMany({ brand: brand }, updateQuery);
+    }
+
+    async updatePriceOfCategory(updatePriceDto: UpdatePriceDto) {
+        const { category, updateQuery } = updatePriceDto;
+
+        // await this.productModel.updateMany({ category: category }, updateQuery);
+        await this.productModel.updateMany({ category: category }, updateQuery);
+        await this.productModel.aggregate([
+            { $project: { price: { $round: ["$price", 2] } } }
+        ])
+    }
+
+    async updatePriceOfSelected(updatePriceDto: UpdatePriceDto) {
+        const { selected, updateQuery } = updatePriceDto;
+
+        for (const product of selected) {
+            await this.productModel.findByIdAndUpdate(product, updateQuery);
+        }
+    }
+
+    async updatePriceAll(updatePriceDto: UpdatePriceDto) {
+        const { updateQuery } = updatePriceDto;
+
+        await this.productModel.updateMany({}, updateQuery);
     }
 }

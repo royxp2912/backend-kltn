@@ -324,4 +324,22 @@ export class VariantsService {
 
         return avaiQuantity;
     }
+
+    // ============================================= SPECIAL - GET =============================================
+    async getListVariantOfProduct(proId: Types.ObjectId) {
+        const listImg = await this.variantModel.find({ product: proId });
+
+        const result = [];
+        for (const img of listImg) {
+            const found = await this.detailVariantModel.find({ variant: img._id }).select("quantity size -_id");
+            const item = {
+                color: img.color,
+                details: found,
+                image: img.image,
+            }
+            result.push(item);
+        }
+
+        return result;
+    }
 }

@@ -3,7 +3,7 @@ import { ProductsService } from './products.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { CategoriesService } from 'src/categories/categories.service';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
-import { CreateProductDto, GetAllProductDto, GetByCategoryDto, GetByStatusDto, PaginationKeywordSortDto, UpdateProductDto } from './dto';
+import { CreateProductDto, GetAllProductDto, GetByCategoryDto, GetByStatusDto, PaginationKeywordSortDto, PriceManagementDto, UpdateProductDto } from './dto';
 import {
     Body, Controller, Get, Param, Patch, Post, Put, Query, Req, UseGuards
 } from '@nestjs/common';
@@ -11,6 +11,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { getPayloadOfToken } from 'src/utils/jwt/decode.jwt';
 import { Payload } from './types/Payload.type';
 import { JwtPayload } from 'jsonwebtoken';
+import { resolveUrlString } from 'vnpay';
 
 @Controller('products')
 export class ProductsController {
@@ -25,8 +26,8 @@ export class ProductsController {
     async create(@Body() createProductDto: CreateProductDto) {
         // check category exist or not
         await this.categoryService.getById(createProductDto.category);
-        await this.productService.create(createProductDto);
-        return { message: "Create New Product Succeed" };
+        const result = await this.productService.create(createProductDto);
+        return { message: "Create New Product Succeed", result: result._id };
     }
 
     // UPDATE ========================================
@@ -85,6 +86,12 @@ export class ProductsController {
         }
     }
 
+    @Get("admin/:proId")
+    async getByIdByAdmin(@Param('proId', new ValidateObjectIdPipe()) proId: Types.ObjectId) {
+        const result = await this.productService.getDetailProductByAdmin(proId);
+        return { message: "Get Product Succeed", result };
+    }
+
     @Get("brand/quantity")
     async getQuantityEachBrand() {
         const result = await this.productService.getQuantityEachBrand();
@@ -132,5 +139,12 @@ export class ProductsController {
     }
 
     // DELETE ========================================
+
+    // ======================================== PRICE MANAGEMENT ========================================
+    @Put("management/price")
+    async priceManagement(@Body() priceManagementDto: PriceManagementDto) {
+        const result = await this.productService.priceManagement(priceManagementDto);
+        return { message: "Update Price Of Product ssSucceed" };
+    }
 }
 

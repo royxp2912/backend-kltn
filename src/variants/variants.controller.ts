@@ -90,9 +90,9 @@ export class VariantsController {
     }
 
     // TEST API =============================================
-    @Get("find/by-test/test")
-    async test(@Query("product") proId: Types.ObjectId, @Query("color") color: VARIANT_COLOR, @Query("size") size: string) {
-        const result = await this.variantsService.getDetail({ product: proId, color: color, size: size });
+    @Get("find/by-test")
+    async test(@Query("product") proId: Types.ObjectId) {
+        const result = await this.variantsService.getListVariantOfProduct(proId);
         return { message: "Find Product By Color succeed.", result }
     }
 }
