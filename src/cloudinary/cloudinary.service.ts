@@ -43,6 +43,7 @@ export class CloudinaryService {
     async deleteImageOnCloud(url: string): Promise<void> {
         const publicId = extractPublicId(url);
         const result = await this.destroy(publicId);
+
         if (result.result !== 'ok') throw new NotFoundException("Delete Image Cloudinary Fail");
     }
 }

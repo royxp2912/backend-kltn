@@ -14,7 +14,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformResponseInterceptor());
   app.useGlobalPipes(new ValidationPipe());
   app.enableCors({
-    origin: true,
+    origin: ['http://localhost:3000', 'http://localhost:3001'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   });

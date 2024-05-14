@@ -11,6 +11,7 @@ import {
     IncreaseOrReduceDto, UpdateDetailVariantDto, UpdateImageVariantDto, UpdateListVariantDto, VariantDto,
 } from './dto';
 import { Product } from 'src/schemas/Product.schema';
+import { resolveUrlString } from 'vnpay';
 
 @Injectable()
 export class VariantsService {
@@ -81,7 +82,24 @@ export class VariantsService {
             const foundVar = await this.getVarByInfo(product, color);
             const detailsVariant: VariantDetail[] = JSON.parse(others.details);
             for (const variant of detailsVariant) {
+                if (!await this.checkSizeInColor(foundVar._id, variant.size)) {
+                    const result = new this.detailVariantModel({
+                        variant: foundVar._id,
+                        size: variant.size,
+                        quantity: variant.quantity,
+                    });
+                    await result.save();
+                    continue;
+                }
                 await this.update({ variant: foundVar._id, ...variant })
+            }
+
+            const listNewSize = detailsVariant.map(obj => obj.size);
+            const listOldSize = await this.getListSizeByVar(foundVar._id);
+            for (const oldSize of listOldSize) {
+                if (!listNewSize.includes(oldSize)) {
+                    await this.detailVariantModel.deleteOne({ variant: foundVar._id, size: oldSize });
+                }
             }
         }
     }
@@ -243,7 +261,7 @@ export class VariantsService {
     }
 
     // ============================================= ##################### =============================================
-    // ============================================= IMAGE VARIANT - COLOR =============================================
+    // ============================================= VARIANT - COLOR =============================================
     // ============================================= ##################### =============================================
 
     // POST ====================================================
@@ -341,5 +359,11 @@ export class VariantsService {
         }
 
         return result;
+    }
+
+    async getListSizeByVar(varId: Types.ObjectId) {
+        const result = await this.detailVariantModel.find({ variant: varId }).select("size -_id");
+        const final = result.map(obj => obj.size);
+        return final;
     }
 }
