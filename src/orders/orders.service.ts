@@ -168,14 +168,18 @@ export class OrdersService {
     // =============================================== USER ===============================================
     async receivedOrder(orderId: Types.ObjectId): Promise<void> {
         const found = await this.getById(orderId);
-        if (found.status !== ORDER_STATUS.DeliveredSuccessfully) throw new BadRequestException("Order is in an unfulfillable status.");
+        if (found.status !== ORDER_STATUS.DeliveredSuccessfully && found.status !== ORDER_STATUS.Delivering) {
+            throw new BadRequestException("Order is in an unfulfillable status.");
+        }
         found.status = ORDER_STATUS.Successful;
         await found.save();
     }
 
     async returnOrder(orderId: Types.ObjectId): Promise<void> {
         const found = await this.getById(orderId);
-        if (found.status !== ORDER_STATUS.Successful) throw new BadRequestException("Order is in non-returnable status.");
+        if (found.status !== ORDER_STATUS.Successful && found.status !== ORDER_STATUS.DeliveredSuccessfully) {
+            throw new BadRequestException("Order is in non-returnable status.");
+        }
         found.status = ORDER_STATUS.Return;
         await found.save();
     }
@@ -222,8 +226,9 @@ export class OrdersService {
 
     async confirmDeliveredOrder(orderId: Types.ObjectId): Promise<void> {
         const found = await this.getById(orderId);
-        if (found.status !== ORDER_STATUS.Delivering) throw new BadRequestException("Order is in a status where delivery cannot be confirmed.");
-        found.status = ORDER_STATUS.DeliveredSuccessfully;
+        if (found.status !== ORDER_STATUS.Delivering && found.status !== ORDER_STATUS.Successful)
+            throw new BadRequestException("Order is in a status where delivery cannot be confirmed.");
+        if (found.status === ORDER_STATUS.Delivering) found.status = ORDER_STATUS.DeliveredSuccessfully;
         found.isDelivered = true;
         found.isPaid = true;
         await found.save();

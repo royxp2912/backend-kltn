@@ -31,6 +31,7 @@ export class CommentsService {
         await this.checkCommentExist(commentator, product);
         const isPurchased = await this.checkedUserPurchasedProduct(commentator, product);
         if (!isPurchased) throw new BadRequestException("Need to purchase the product to be able to rate the product.");
+        console.log(isPurchased.status);
 
         if (isPurchased.status !== ORDER_STATUS.DeliveredSuccessfully && isPurchased.status !== ORDER_STATUS.Successful) {
             throw new BadRequestException("The order has not been successfully delivered so cannot comment..");
