@@ -8,8 +8,10 @@ import {
 } from "@nestjs/common";
 import { Types } from "mongoose";
 import { UpdateCateDto } from "./dto";
+import { TransformResponseInterceptor } from "src/utils/interceptors/response.interceptor";
 
 @Controller('categories')
+@UseInterceptors(TransformResponseInterceptor)
 export class CategoriesController {
     constructor(
         private readonly categoriesService: CategoriesService,

@@ -1,10 +1,12 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, UseInterceptors } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
+import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
 import { CouponsService } from './coupons.service';
 import { CreateCouponDto, CreateUserCouponReviewDto, PaginationDto, PaginationUserDto, PaginationUserValidDto, UpdateCouponDto } from './dto';
 
 @Controller('coupons')
+@UseInterceptors(TransformResponseInterceptor)
 export class CouponsController {
     constructor(private readonly couponsService: CouponsService) { }
 

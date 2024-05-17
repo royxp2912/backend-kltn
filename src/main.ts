@@ -11,8 +11,8 @@ async function bootstrap() {
   app.use(cookieParser());
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
-  app.useGlobalInterceptors(new TransformResponseInterceptor());
   app.useGlobalPipes(new ValidationPipe());
+  // app.useGlobalInterceptors(new TransformResponseInterceptor());
   app.enableCors({
     origin: ['http://localhost:3000', 'http://localhost:3001'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],

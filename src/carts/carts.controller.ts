@@ -3,9 +3,11 @@ import { CartsService } from './carts.service';
 import { AddToCartDto } from './dto/AddToCart.dto';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
 import { AddWithoutVariantDto, RemoveFromCartDto, UpdateVariantCartDto } from './dto';
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseInterceptors } from '@nestjs/common';
+import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
 
 @Controller('carts')
+@UseInterceptors(TransformResponseInterceptor)
 export class CartsController {
     constructor(
         private readonly cartsService: CartsService,) { }

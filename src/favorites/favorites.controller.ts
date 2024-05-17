@@ -1,11 +1,13 @@
 import { Types } from 'mongoose';
 import { CreateFavoriteDto } from './dto';
 import { FavoritesService } from './favorites.service';
-import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
 import { AuthGuard } from '@nestjs/passport';
+import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
 
 @Controller('favorites')
+@UseInterceptors(TransformResponseInterceptor)
 export class FavoritesController {
     constructor(private readonly favoritesService: FavoritesService) { }
 

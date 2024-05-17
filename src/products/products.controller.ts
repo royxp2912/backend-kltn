@@ -5,15 +5,17 @@ import { CategoriesService } from 'src/categories/categories.service';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
 import { CreateProductDto, GetAllProductDto, GetByCategoryDto, GetByStatusDto, PaginationKeywordSortDto, PriceManagementDto, UpdateProductDto } from './dto';
 import {
-    Body, Controller, Get, Param, Patch, Post, Put, Query, Req, UseGuards
+    Body, Controller, Get, Param, Patch, Post, Put, Query, Req, UseGuards, UseInterceptors
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { getPayloadOfToken } from 'src/utils/jwt/decode.jwt';
 import { Payload } from './types/Payload.type';
 import { JwtPayload } from 'jsonwebtoken';
 import { resolveUrlString } from 'vnpay';
+import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
 
 @Controller('products')
+@UseInterceptors(TransformResponseInterceptor)
 export class ProductsController {
     constructor(
         private readonly productService: ProductsService,

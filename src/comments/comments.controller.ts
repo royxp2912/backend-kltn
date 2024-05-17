@@ -5,8 +5,10 @@ import { CreateCommentDto, PaginationProductDto, UpdateCommentDto } from './dto'
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
 
 @Controller('comments')
+@UseInterceptors(TransformResponseInterceptor)
 export class CommentsController {
     constructor(
         private readonly commentsService: CommentsService,

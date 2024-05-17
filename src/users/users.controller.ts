@@ -6,8 +6,10 @@ import { CloudinaryService } from "src/cloudinary/cloudinary.service";
 import { ValidateObjectIdPipe } from "src/utils/customPipe/validateObjectId.pipe";
 import { FindByKeywordDto, GetAllDto, GetByEmailDto, GetByStatusDto, UpdateEmailDto, UpdatePasswordDto, UpdateUserDto } from "./dto";
 import { UsersService } from "./users.service";
+import { TransformResponseInterceptor } from "src/utils/interceptors/response.interceptor";
 
 @Controller('users')
+@UseInterceptors(TransformResponseInterceptor)
 export class UsersController {
     constructor(
         private readonly usersService: UsersService,

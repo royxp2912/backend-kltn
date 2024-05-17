@@ -1,9 +1,11 @@
 import { DetailMonthDto } from './dto';
 import { StartEndOfMonth } from './dateUtils';
 import { RevenueService } from './revenue.service';
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
+import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
 
 @Controller('revenue')
+@UseInterceptors(TransformResponseInterceptor)
 export class RevenueController {
     constructor(private readonly revenueService: RevenueService) { }
 

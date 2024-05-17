@@ -9,8 +9,10 @@ import {
     CreateListVariantDto, DetailVariantDto, GetByColorAProductDto, GetBySizeAProductDto,
     GetVariantByInfoDto, IncreaseOrReduceDto, UpdateListVariantDto
 } from './dto';
+import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
 
 @Controller('variants')
+@UseInterceptors(TransformResponseInterceptor)
 export class VariantsController {
 
     constructor(

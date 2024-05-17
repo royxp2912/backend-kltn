@@ -1,10 +1,12 @@
 import { Types } from 'mongoose';
 import { CreateDlvAddDto, UpdateDlvAddDto } from './dto';
 import { DeliveryAddressService } from './deliveryAddress.service';
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseInterceptors } from '@nestjs/common';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
+import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
 
 @Controller('deliveryAddress')
+@UseInterceptors(TransformResponseInterceptor)
 export class DeliveryAddressController {
     constructor(private readonly deliveryAddressService: DeliveryAddressService) { }
 

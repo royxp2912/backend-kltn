@@ -1,10 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseInterceptors } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
+import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
 import { AcptPushDto, CreateNotiDto, PaginationUserDto, SendPushDto } from './dto';
 import { NotificationsService } from './notifications.service';
 
 @Controller('notifications')
+@UseInterceptors(TransformResponseInterceptor)
 export class NotificationsController {
     constructor(private readonly notificationsService: NotificationsService) { }
 

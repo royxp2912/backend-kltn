@@ -1,9 +1,11 @@
 import { AuthGuard } from "@nestjs/passport";
 import { AuthsService } from "./auths.service";
 import { LoginDto, RegisterDto, SendOTPDto } from "./dto";
-import { Body, Controller, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Post, Req, Res, UseGuards, UseInterceptors } from "@nestjs/common";
+import { TransformResponseInterceptor } from "src/utils/interceptors/response.interceptor";
 
 @Controller('auths')
+@UseInterceptors(TransformResponseInterceptor)
 export class AuthsController {
     constructor(private readonly authsService: AuthsService) { }
 
