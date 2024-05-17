@@ -64,13 +64,13 @@ export class OrdersService {
         const savedOrder = await newOrder.save();
 
         await Promise.all(newOrder.items.map(item => {
-            // this.cartsService.removeFromCart({ user: newOrder.user, product: item.product });
+            this.cartsService.removeFromCart({ user: newOrder.user, product: item.product });
             this.variantsService.reduceQuantity({ product: item.product, color: item.color, size: item.size, quantity: item.quantity });
             this.productsService.updateSold(item.product, item.quantity);
         }))
         if (coupon) await this.couponsService.deleteByUserACoupon(coupon);
 
-        await this.notificationsService.createNotification({ user: others.user, type: NOTI_TYPE.ORDER_SUCCEED, relation: savedOrder.orderId });
+        // await this.notificationsService.createNotification({ user: others.user, type: NOTI_TYPE.ORDER_SUCCEED, relation: savedOrder.orderId });
 
         if (savedOrder.paymentMethod === ORDER_PAYMENT_METHOD.VNPAY) return this.generatePaymentUrl({ orderId: savedOrder.orderId, total: savedOrder.total });
 
@@ -99,6 +99,15 @@ export class OrdersService {
 
     async getById(orderId: Types.ObjectId) {
         const result = await this.orderModel.findById(orderId)
+            .populate({ path: 'deliveryAddress', select: '-createdAt -updatedAt -__v' })
+            .select("-__v -createdAt -updatedAt");
+
+        if (!result) throw new NotFoundException("Order not found.");
+        return result;
+    }
+
+    async getByOrderId(orderId: string) {
+        const result = await this.orderModel.findOne({ orderId: orderId })
             .populate({ path: 'deliveryAddress', select: '-createdAt -updatedAt -__v' })
             .select("-__v -createdAt -updatedAt");
 

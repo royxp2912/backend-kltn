@@ -25,6 +25,12 @@ export class OrdersController {
         return { message: "Get Order succeed.", result }
     }
 
+    @Get("/by-id/:orderId")
+    async getByOrderId(@Param('orderId') orderId: string) {
+        const result = await this.ordersService.getByOrderId(orderId);
+        return { message: "Get Order succeed.", result }
+    }
+
     @Get("find/by-user-status")
     async getByUserAndStatus(@Query() paginationUserAStatusDto: PaginationUserAStatusDto) {
         const result = await this.ordersService.getByUserAStatus(paginationUserAStatusDto);
