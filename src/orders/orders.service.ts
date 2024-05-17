@@ -64,7 +64,7 @@ export class OrdersService {
         const savedOrder = await newOrder.save();
 
         await Promise.all(newOrder.items.map(item => {
-            this.cartsService.removeFromCart({ user: newOrder.user, product: item.product });
+            // this.cartsService.removeFromCart({ user: newOrder.user, product: item.product });
             this.variantsService.reduceQuantity({ product: item.product, color: item.color, size: item.size, quantity: item.quantity });
             this.productsService.updateSold(item.product, item.quantity);
         }))
