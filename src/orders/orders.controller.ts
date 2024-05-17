@@ -125,10 +125,10 @@ export class OrdersController {
     async callbackVNPay(@Query() query, @Res({ passthrough: true }) res) {
         const result = this.ordersService.validatePaymentCallback(query);
         console.log("result callback; ", result);
-        if (!result.isSuccess) return res.redirect(`https://www.nimo.tv/mixi?error=${result.message}`);
+        if (!result.isSuccess) return res.redirect(`http://localhost:3000/orderFail?error=${result.message}`);
 
         // Nếu thanh toán thành công - đổi trạng thái đơn hàng sang đã thanh toán
         await this.ordersService.confirmPaid(result.vnp_TxnRef);
-        return res.redirect("https://www.facebook.com/");
+        return res.redirect("http://localhost:3000/orderSuccess");
     }
 }
