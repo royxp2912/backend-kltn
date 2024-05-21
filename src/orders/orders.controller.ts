@@ -155,31 +155,15 @@ export class OrdersController {
         if (!result.isSuccess) {
             const failUrl = `http://localhost:3000/orderFail/${result.vnp_TxnRef}?error=${result.message}`;
             return { statusCode: HttpStatus.FOUND, url: failUrl };
-            // return res.redirect(`http://localhost:3000/orderFail/${result.vnp_TxnRef}?error=${result.message}`);
         }
 
         // Nếu thanh toán thành công - đổi trạng thái đơn hàng sang đã thanh toán
         await this.ordersService.confirmPaid(result.vnp_TxnRef);
         const succeedUrl = `http://localhost:3000/orderSuccess/${result.vnp_TxnRef}`;
         return { statusCode: HttpStatus.FOUND, url: succeedUrl };
-        // return res.redirect(`http://localhost:3000/orderSuccess/${result.vnp_TxnRef}`);
     }
 
-    // @Get("vnpay/callback")
-    // async callbackVNPay(@Query() query, @Res({ passthrough: true }) res) {
-    //     const result = this.ordersService.validatePaymentCallback(query);
-    //     console.log("result callback; ", result);
-    //     if (!result.isSuccess) {
-    //         res.redirect(`http://localhost:3000/orderFail/${result.vnp_TxnRef}?error=${result.message}`);
-    //         return;
-    //     }
-
-    //     // Nếu thanh toán thành công - đổi trạng thái đơn hàng sang đã thanh toán
-    //     await this.ordersService.confirmPaid(result.vnp_TxnRef);
-    //     res.redirect(`http://localhost:3000/orderSuccess/${result.vnp_TxnRef}`);
-    //     return;
-    // }
-
+    /// - tesst
     @Get('redirect/callback')
     @Redirect()
     redirectToRoute() {
@@ -192,6 +176,15 @@ export class OrdersController {
             console.log("sai");
             return { statusCode: HttpStatus.FOUND, url: "https://www.youtube.com/" };
         }
+    }
+
+
+    @Get("test/api-test")
+    @UseInterceptors(TransformResponseInterceptor)
+    async tesst(@Query("product") product: Types.ObjectId) {
+        const result = await this.ordersService.getSoldOfProductInMonthAgo(product);
+
+        return { message: "test succeed.", result }
     }
 
 }

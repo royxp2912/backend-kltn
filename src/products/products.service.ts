@@ -9,13 +9,14 @@ import { CommentsService } from 'src/comments/comments.service';
 import { VariantsService } from 'src/variants/variants.service';
 import { CategoriesService } from 'src/categories/categories.service';
 import { PRODUCT_BRAND, PRODUCT_STATUS } from 'src/constants/schema.enum';
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
     CreateProductDto, GetAllProductDto, GetByCategoryDto, GetByStatusDto, HandleResponseFavoriteDto, HandleResponseGetListDto,
     PaginationKeywordSortDto, PriceManagementDto, UpdatePriceDto, UpdateProductDto
 } from './dto';
 import { FavoritesService } from 'src/favorites/favorites.service';
 import { OPTION_PRICE_MANAGEMENT, PART_PRICE_MANAGEMENT, TYPE_PRICE_MANAGEMENT } from './constants';
+import { OrdersService } from 'src/orders/orders.service';
 
 @Injectable()
 export class ProductsService {
@@ -26,7 +27,7 @@ export class ProductsService {
         private readonly favoritesService: FavoritesService,
         @InjectModel(Product.name) private readonly productModel: Model<Product>,
         @InjectModel(Category.name) private readonly categoryModel: Model<Category>,
-        // @Inject(forwardRef(() => CommentsService)) private readonly commentsService: CommentsService,
+        @Inject(forwardRef(() => OrdersService)) private readonly ordersService: OrdersService,
     ) { }
 
     // CREATE ========================================
@@ -94,10 +95,6 @@ export class ProductsService {
                 { category: { $in: await this.categoryModel.find({ name: { $regex: keyword, $options: 'i' } }) } },
             ],
         }).select("_id price rating brand");
-        if (sort === SORT.pASC) found.sort((a, b) => a.price - b.price);
-        if (sort === SORT.pDESC) found.sort((a, b) => b.price - a.price);
-        if (sort === SORT.rASC) found.sort((a, b) => a.rating - b.rating);
-        if (sort === SORT.rDESC) found.sort((a, b) => b.rating - a.rating);
 
         let final = [];
         let semiFinal = found;
@@ -107,6 +104,14 @@ export class ProductsService {
                 if (await this.variantsService.checkedColorInProduct(product._id, color)) final.push(product);
             }
         } else { final = semiFinal }
+
+        console.log("final: ", final);
+
+        if (sort === SORT.pASC) final.sort((a, b) => a.price - b.price);
+        if (sort === SORT.pDESC) final.sort((a, b) => b.price - a.price);
+        if (sort === SORT.rASC) final.sort((a, b) => a.rating - b.rating);
+        if (sort === SORT.rDESC) final.sort((a, b) => b.rating - a.rating);
+        if (sort === SORT.HOT) await this.sortHotDeal(final);
 
         return await this.handleResponseGetList({ user, listProducts: final, pageSize, pageNumber });
     }
@@ -350,5 +355,18 @@ export class ProductsService {
         const { updateQuery } = updatePriceDto;
 
         await this.productModel.updateMany({}, updateQuery);
+    }
+
+    // ======================================== HOT DEAL ========================================
+    async sortHotDeal(listProducts: (Document<unknown, {}, Product> & Product & { _id: Types.ObjectId })[]) {
+        const result = [];
+        for (const product of listProducts) {
+            const quantitySold = await this.ordersService.getSoldOfProductInMonthAgo(product._id);
+            result.push({ _id: product._id, quantitySold });
+        }
+
+        result.sort((a, b) => b.quantitySold - a.quantitySold);
+
+        return result;
     }
 }

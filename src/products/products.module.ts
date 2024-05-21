@@ -1,15 +1,16 @@
-import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { forwardRef, Module } from '@nestjs/common';
 import { ProductsService } from './products.service';
+import { OrdersModule } from 'src/orders/orders.module';
 import { ProductsController } from './products.controller';
 import { VariantsModule } from 'src/variants/variants.module';
-import { Comment, CommentSchema } from 'src/schemas/Comment.schema';
-import { Product, ProductSchema } from 'src/schemas/Product.schema';
-import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
-import { CategoriesModule } from 'src/categories/categories.module';
-import { Category, CategorySchema } from 'src/schemas/Category.schema';
 import { CommentsModule } from 'src/comments/comments.module';
 import { FavoritesModule } from 'src/favorites/favorites.module';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { CategoriesModule } from 'src/categories/categories.module';
+import { Product, ProductSchema } from 'src/schemas/Product.schema';
+import { Comment, CommentSchema } from 'src/schemas/Comment.schema';
+import { Category, CategorySchema } from 'src/schemas/Category.schema';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { FavoritesModule } from 'src/favorites/favorites.module';
     FavoritesModule,
     CloudinaryModule,
     CategoriesModule,
+    forwardRef(() => OrdersModule),
   ],
   providers: [ProductsService],
   controllers: [ProductsController],

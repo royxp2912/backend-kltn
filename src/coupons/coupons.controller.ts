@@ -56,7 +56,14 @@ export class CouponsController {
     // =============================================== SPECIAL ==============================================
     @Post("list")
     async createUserCoupon(@Body("userId") userId: Types.ObjectId) {
-        await this.couponsService.createUserCouponReviewPrime(userId);
+        await this.couponsService.createUserCouponReview(userId);
         return { message: "Create User Coupon succeed." }
+    }
+
+
+    @Get("test/api-test")
+    async test(@Query() paginationUserValidDto: PaginationUserValidDto) {
+        const result = await this.couponsService.getRecommendCoupon(paginationUserValidDto);
+        return { message: "Create User Coupon succeed.", result }
     }
 }

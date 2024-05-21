@@ -14,11 +14,13 @@ import { OrderAddressService } from 'src/orderaddress/orderaddress.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { DeliveryAddressService } from 'src/deliveryaddress/deliveryAddress.service';
 import { NOTI_TYPE, ORDER_PAYMENT_METHOD, ORDER_STATUS } from 'src/constants/schema.enum';
-import { BadGatewayException, BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
     CreateOrderDto, HandleResponseGetListDto, PaginationDto, PaginationKeywordDto, PaginationStatusDto, PaginationUserAStatusDto, PaginationUserDto, PaymentUrlDto
 } from './dto';
 import { CANCEL_ORDER_TYPE } from './constants';
+import { StartEndOfMonthAgo } from 'src/revenue/dateUtils';
+import { isNotEmpty } from 'class-validator';
 
 @Injectable()
 export class OrdersService {
@@ -28,12 +30,12 @@ export class OrdersService {
         private readonly cartsService: CartsService,
         private readonly couponsService: CouponsService,
         private readonly variantsService: VariantsService,
-        private readonly productsService: ProductsService,
         private readonly orderAddressService: OrderAddressService,
         private readonly notificationsService: NotificationsService,
         private readonly deliveryAddressService: DeliveryAddressService,
         @InjectModel(User.name) private readonly userModel: Model<User>,
         @InjectModel(Order.name) private readonly orderModel: Model<Order>,
+        @Inject(forwardRef(() => ProductsService)) private readonly productsService: ProductsService,
     ) {
         this.vnpay = new VNPay({
             vnpayHost: 'https://sandbox.vnpayment.vn',
@@ -177,7 +179,7 @@ export class OrdersService {
     // =============================================== USER ===============================================
     async receivedOrder(orderId: Types.ObjectId): Promise<void> {
         const found = await this.getById(orderId);
-        if (found.status !== ORDER_STATUS.DeliveredSuccessfully && found.status !== ORDER_STATUS.Delivering) {
+        if (found.status !== ORDER_STATUS.DeliveredSuccessfully && found.status !== ORDER_STATUS.Delivering && found.status !== ORDER_STATUS.Successful) {
             throw new BadRequestException("Order is in an unfulfillable status.");
         }
         found.status = ORDER_STATUS.Successful;
@@ -319,6 +321,29 @@ export class OrdersService {
         const result: PaginationRes = { total: listOrders.length, pages: pages, data: final }
 
         return result;
+    }
+
+    // ================================= HOT DEAL - SEARCH - EXPORT TO PRODUCT SERVICE ===================================
+    async getSoldOfProductInMonthAgo(proId: Types.ObjectId) {
+        const today = new Date();
+        const time = StartEndOfMonthAgo(today.getDate(), today.getMonth(), today.getFullYear());
+        const start = time.start;
+        const end = time.end;
+
+        const listProducts = await this.orderModel.find({
+            items: { $elemMatch: { product: proId } },
+            createdAt: { $gte: start, $lte: end },
+        }).select("items.quantity items.product");
+
+        // const soldList = listProducts.flatMap((cur) => cur.items.map((item) => { return { product: item.product, sold: item.quantity } }));
+
+        const soldList = listProducts.flatMap((cur) => cur.items.map((item) => {
+            if (!item.product.equals(proId)) return 0;
+            return item.quantity;
+        }));
+        const quantitySold = soldList.reduce((cur, acc) => acc + cur, 0);
+
+        return quantitySold;
     }
 
     @Cron(CronExpression.EVERY_HOUR)

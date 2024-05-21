@@ -1,16 +1,16 @@
-import { Module } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { MongooseModule } from '@nestjs/mongoose';
+import { forwardRef, Module } from '@nestjs/common';
 import { CartsModule } from 'src/carts/carts.module';
 import { OrdersController } from './orders.controller';
 import { User, UserSchema } from 'src/schemas/User.schema';
+import { CouponsModule } from 'src/coupons/coupons.module';
 import { Order, OrderSchema } from 'src/schemas/Order.schema';
 import { VariantsModule } from 'src/variants/variants.module';
 import { ProductsModule } from 'src/products/products.module';
 import { OrderAddressModule } from 'src/orderaddress/orderaddress.module';
 import { NotificationsModule } from 'src/notifications/notifications.module';
 import { DeliveryAddressModule } from 'src/deliveryaddress/deliveryaddress.module';
-import { CouponsModule } from 'src/coupons/coupons.module';
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { CouponsModule } from 'src/coupons/coupons.module';
     CouponsModule,
     CartsModule,
     VariantsModule,
-    ProductsModule,
+    forwardRef(() => ProductsModule),
     OrderAddressModule,
     NotificationsModule,
     DeliveryAddressModule,

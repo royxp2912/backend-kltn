@@ -1,4 +1,6 @@
 export enum SORT {
+    NEW = 'NEW',
+    HOT = 'HOT',
     pASC = 'pASC',
     rASC = 'rASC',
     pDESC = 'pDESC',

@@ -78,10 +78,34 @@ export class CouponsService {
             if (found.minAmount > amount) continue;
             result.push({ ...found, _id: item._id, startDate: item.startDate, endDate: item.endDate })
         }
+
+        const recommendCoupons = await this.getRecommendCoupon(paginationUserValidDto);
+
         const pages: number = Math.ceil(result.length / pageSize);
         const semiFinal = result.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
-        const finalResult: PaginationResUser = { pages: pages, data: semiFinal };
+        const finalResult = { pages: pages, data: { validCoupons: semiFinal, recommendCoupons } };
         return finalResult;
+    }
+
+    async getRecommendCoupon(paginationUserValidDto: PaginationUserValidDto) {
+        const today = new Date();
+        const userId = paginationUserValidDto.user;
+        const amount = paginationUserValidDto.amount;
+
+        const foundListCoupons = await this.userCouponModel.find({ user: userId, endDate: { $gt: today } });
+        const result = [];
+        for (const item of foundListCoupons) {
+            const found = await this.getById(item.coupon);
+            const priceDifference = found.minAmount - amount;
+            if (priceDifference > 100 || priceDifference <= 0 || isNaN(priceDifference)) continue;
+            result.push({
+                ...found, _id: item._id,
+                startDate: item.startDate,
+                endDate: item.endDate,
+                recommend: `You just need to increase the order value by ${priceDifference}$ to be able to use this coupon.`
+            })
+        }
+        return result;
     }
 
     async getListCouponsOfUser(paginationUserDto: PaginationUserDto) {
