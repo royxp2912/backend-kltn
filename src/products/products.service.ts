@@ -8,7 +8,7 @@ import { Category } from 'src/schemas/Category.schema';
 import { CommentsService } from 'src/comments/comments.service';
 import { VariantsService } from 'src/variants/variants.service';
 import { CategoriesService } from 'src/categories/categories.service';
-import { PRODUCT_BRAND, PRODUCT_STATUS } from 'src/constants/schema.enum';
+import { PRODUCT_BRAND, PRODUCT_STATUS, VARIANT_COLOR } from 'src/constants/schema.enum';
 import { ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
     CreateProductDto, GetAllProductDto, GetByCategoryDto, GetByStatusDto, HandleResponseFavoriteDto, HandleResponseGetListDto,
@@ -96,22 +96,7 @@ export class ProductsService {
             ],
         }).select("_id price rating brand");
 
-        let final = [];
-        let semiFinal = found;
-        if (brand) semiFinal = found.filter(item => item.brand === brand);
-        if (color) {
-            for (const product of semiFinal) {
-                if (await this.variantsService.checkedColorInProduct(product._id, color)) final.push(product);
-            }
-        } else { final = semiFinal }
-
-        console.log("final: ", final);
-
-        if (sort === SORT.pASC) final.sort((a, b) => a.price - b.price);
-        if (sort === SORT.pDESC) final.sort((a, b) => b.price - a.price);
-        if (sort === SORT.rASC) final.sort((a, b) => a.rating - b.rating);
-        if (sort === SORT.rDESC) final.sort((a, b) => b.rating - a.rating);
-        if (sort === SORT.HOT) await this.sortHotDeal(final);
+        const final = await this.allSort(found, brand, color, sort);
 
         return await this.handleResponseGetList({ user, listProducts: final, pageSize, pageNumber });
     }
@@ -169,8 +154,8 @@ export class ProductsService {
     }
 
     async getByCategory(getByCategoryDto: GetByCategoryDto): Promise<GetAllProductRes> {
-        const user = getByCategoryDto.user;
         const cateId = getByCategoryDto.category;
+        const { user, sort, brand, color } = getByCategoryDto;
         await this.categoryService.getById(cateId);
 
         const pageSize = getByCategoryDto.pageSize || 1;
@@ -180,7 +165,9 @@ export class ProductsService {
             .populate({ path: "category", select: "name" })
             .select('-__v -createdAt -updatedAt');
 
-        return await this.handleResponseGetList({ user, listProducts: found, pageSize, pageNumber });
+        const final = await this.allSort(found, brand, color, sort);
+
+        return await this.handleResponseGetList({ user, listProducts: final, pageSize, pageNumber });
     }
 
     async getByStatus(getByStatusDto: GetByStatusDto): Promise<GetAllProductRes> {
@@ -358,6 +345,25 @@ export class ProductsService {
     }
 
     // ======================================== HOT DEAL ========================================
+    async allSort(listProducts: (Document<unknown, {}, Product> & Product & { _id: Types.ObjectId })[], brand?: PRODUCT_BRAND, color?: VARIANT_COLOR, sort?: SORT) {
+        let final = [];
+        let semiFinal = listProducts;
+        if (brand) semiFinal = listProducts.filter(item => item.brand === brand);
+        if (color) {
+            for (const product of semiFinal) {
+                if (await this.variantsService.checkedColorInProduct(product._id, color)) final.push(product);
+            }
+        } else { final = semiFinal }
+
+        if (sort === SORT.pASC) final.sort((a, b) => a.price - b.price);
+        if (sort === SORT.pDESC) final.sort((a, b) => b.price - a.price);
+        if (sort === SORT.rASC) final.sort((a, b) => a.rating - b.rating);
+        if (sort === SORT.rDESC) final.sort((a, b) => b.rating - a.rating);
+        if (sort === SORT.HOT) await this.sortHotDeal(final);
+
+        return final;
+    }
+
     async sortHotDeal(listProducts: (Document<unknown, {}, Product> & Product & { _id: Types.ObjectId })[]) {
         const result = [];
         for (const product of listProducts) {
