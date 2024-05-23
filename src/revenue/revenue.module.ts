@@ -7,6 +7,7 @@ import { Order, OrderSchema } from 'src/schemas/Order.schema';
 import { ProductsModule } from 'src/products/products.module';
 import { Product, ProductSchema } from 'src/schemas/Product.schema';
 import { Variant, VariantSchema } from 'src/schemas/Variant.schema';
+import { Category, CategorySchema } from 'src/schemas/Category.schema';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { Variant, VariantSchema } from 'src/schemas/Variant.schema';
       { name: Order.name, schema: OrderSchema },
       { name: Product.name, schema: ProductSchema },
       { name: Variant.name, schema: VariantSchema },
+      { name: Category.name, schema: CategorySchema },
     ]),
     ProductsModule,
   ],

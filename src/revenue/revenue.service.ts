@@ -1,4 +1,4 @@
-import { DetailMonthDto } from './dto';
+import { DetailMonthDto, DetailYearDto, DetailYearEachBrandDto, DetailYearEachCategoryDto, RevenueMonthDto } from './dto';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/schemas/User.schema';
@@ -10,6 +10,8 @@ import { TopProductInfo, TopUserInfo } from './types';
 import { ProductsService } from 'src/products/products.service';
 import { DAY_WEEK, TYPE_REVENUE } from 'src/constants/dto..enum';
 import { StartEndOfDay, StartEndOfMonth, StartEndOfMonthAgo, StartEndOfWeek } from './dateUtils';
+import { PRODUCT_BRAND, SYNTAX_MONTH } from 'src/constants/schema.enum';
+import { Category } from 'src/schemas/Category.schema';
 
 @Injectable()
 export class RevenueService {
@@ -18,8 +20,86 @@ export class RevenueService {
         @InjectModel(Order.name) private readonly orderModel: Model<Order>,
         @InjectModel(Product.name) private readonly productModel: Model<Product>,
         @InjectModel(Variant.name) private readonly variantModel: Model<Variant>,
+        @InjectModel(Category.name) private readonly categoryModel: Model<Category>,
         private readonly productsService: ProductsService,
     ) { }
+
+    // ========================================= API - REVENUE - YEAR =========================================
+    async detailRevenueOfYear(detailYearDto: DetailYearDto) {
+        const { year } = detailYearDto;
+
+        let details = [];
+        let first = 0;
+        while (first < 12) {
+            let revenueOfMonth = await this.revenueOfMonth(first + 1, year);
+            details.push({ month: SYNTAX_MONTH[first], total: revenueOfMonth });
+
+            first += 1;
+        }
+
+        return details;
+    }
+
+    // ========================================= API - REVENUE - YEAR - EACH BRAND - CATE =========================================
+    async detailTotalProductOfBrandOfYear(detailYearEachBrandDto: DetailYearEachBrandDto) {
+        const { brand, year } = detailYearEachBrandDto;
+
+        let details = [];
+        let first = 0;
+        while (first < 12) {
+            let revenueOfMonth = await this.totalProductOfBrandOfMonth(brand, first + 1, year);
+            details.push({ month: SYNTAX_MONTH[first], total: revenueOfMonth });
+
+            first += 1;
+        }
+
+        return details;
+    }
+
+    async detailTotalProductOfCategoryOfYear(detailYearEachCategoryDto: DetailYearEachCategoryDto) {
+        const { category, year } = detailYearEachCategoryDto;
+
+        let details = [];
+        let first = 0;
+        while (first < 12) {
+            let revenueOfMonth = await this.totalProductOfCategoryOfMonth(category, first + 1, year);
+            details.push({ month: SYNTAX_MONTH[first], total: revenueOfMonth });
+
+            first += 1;
+        }
+
+        return details;
+    }
+
+    async totalProductOfBrandOfMonth(brand: PRODUCT_BRAND, month: number, year: number) {
+        const time = StartEndOfMonth(month, year);
+        const endOfMonth = time.end;
+        const startOfMonth = time.start;
+
+        let quantitySold = 0;
+        const listProducts = await this.listProductSoldOfTime(startOfMonth, endOfMonth);
+        for (const product of listProducts) {
+            const found = await this.productModel.findById(product.product).select("brand");
+            if (found.brand === brand) quantitySold += product.sold;
+        }
+
+        return quantitySold;
+    }
+
+    async totalProductOfCategoryOfMonth(category: Types.ObjectId, month: number, year: number) {
+        const time = StartEndOfMonth(month, year);
+        const endOfMonth = time.end;
+        const startOfMonth = time.start;
+
+        let quantitySold = 0;
+        const listProducts = await this.listProductSoldOfTime(startOfMonth, endOfMonth);
+        for (const product of listProducts) {
+            const found = await this.productModel.findById(product.product).select("category");
+            if (found.category.equals(category)) quantitySold += product.sold;
+        }
+
+        return quantitySold;
+    }
 
     // ========================================= API =========================================
     async hotProductMonthAgo() {
@@ -536,6 +616,56 @@ export class RevenueService {
 
         const result = Object.keys(buyMap).map(user => {
             return { user: new mongoose.Types.ObjectId(user), spent: buyMap[user] as number };
+        });
+
+        return result;
+    }
+
+    // ======================================== REVENUE - EACH BRAND - CATEGORY ========================================
+    async statisticalRevenueEachBrandOfMonth(revenueMonthDto: RevenueMonthDto) {
+        const { month, year } = revenueMonthDto;
+        const time = StartEndOfMonth(month, year);
+        const start = time.start;
+        const end = time.end;
+
+        const listProductsSold = await this.listProductSoldOfTime(start, end);
+
+        const listBrands = Object.values(PRODUCT_BRAND).reduce((acc, cur) => {
+            acc[cur] = 0;
+            return acc;
+        }, {});
+        for (const product of listProductsSold) {
+            const info = await this.productModel.findById(product.product).select("brand");
+            listBrands[info.brand] += product.sold;
+        }
+
+        const result = Object.keys(listBrands).map(brand => {
+            return { brand: brand, sold: listBrands[brand] as number };
+        });
+
+        return result;
+    }
+
+    async statisticalRevenueEachCategoryOfMonth(revenueMonthDto: RevenueMonthDto) {
+        const { month, year } = revenueMonthDto;
+        const time = StartEndOfMonth(month, year);
+        const start = time.start;
+        const end = time.end;
+
+        const listProductsSold = await this.listProductSoldOfTime(start, end);
+
+        const foundCategories = await this.categoryModel.find({}).select("name");
+        const listCategories = foundCategories.reduce((acc, cur) => {
+            acc[cur._id as any] = { name: cur.name, sold: 0 };
+            return acc;
+        }, {})
+        for (const product of listProductsSold) {
+            const info = await this.productModel.findById(product.product).select("category");
+            listCategories[info.category as any].sold += product.sold;
+        }
+
+        const result = Object.keys(listCategories).map(category => {
+            return { category: listCategories[category].name, sold: listCategories[category].sold as number };
         });
 
         return result;

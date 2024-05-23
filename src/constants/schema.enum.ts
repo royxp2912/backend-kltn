@@ -106,3 +106,18 @@ export enum NOTI_TYPE {
     ORDER_CANCELLED_BY_ADMIN = 'ORDER_CANCELLED_BY_ADMIN',
     ORDER_CANCELLED_DUE_TO_EXPIRATION = 'ORDER_CANCELLED_DUE_TO_EXPIRATION',
 }
+
+export enum SYNTAX_MONTH {
+    Jan,
+    Feb,
+    Mar,
+    Apr,
+    May,
+    June,
+    July,
+    Aug,
+    Sep,
+    Oct,
+    Nov,
+    Dec,
+}

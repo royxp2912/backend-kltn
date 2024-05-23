@@ -1,8 +1,9 @@
-import { DetailMonthDto } from './dto';
+import { DetailMonthDto, DetailYearDto, DetailYearEachBrandDto, DetailYearEachCategoryDto, RevenueMonthDto } from './dto';
 import { StartEndOfMonth } from './dateUtils';
 import { RevenueService } from './revenue.service';
 import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
 import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
+import { PRODUCT_BRAND } from 'src/constants/schema.enum';
 
 @Controller('revenue')
 @UseInterceptors(TransformResponseInterceptor)
@@ -136,14 +137,46 @@ export class RevenueController {
         return { message: "Get Revenue Today succeed.", result }
     }
 
+    // ======================================== BRAND - CATEGORY ========================================
+    @Get("brand/this-month")
+    async revenueEachBrandThisMonth(@Query() revenueMonthDto: RevenueMonthDto) {
+        const result = await this.revenueService.statisticalRevenueEachBrandOfMonth(revenueMonthDto);
+        return { message: "Get Revenue Each Brand This Month succeed.", result }
+    }
+
+    @Get("category/this-month")
+    async revenueEachCategoryThisMonth(@Query() revenueMonthDto: RevenueMonthDto) {
+        const result = await this.revenueService.statisticalRevenueEachCategoryOfMonth(revenueMonthDto);
+        return { message: "Get Revenue Each Category This Month succeed.", result }
+    }
+
+    @Get("detail/category/by-year")
+    async detailTotalProductOfCategoryOfYear(@Query() detailYearEachCategoryDto: DetailYearEachCategoryDto) {
+        const result = await this.revenueService.detailTotalProductOfCategoryOfYear(detailYearEachCategoryDto);
+        return { message: "Get Detail Revenue Of Category By Year succeed.", result }
+    }
+
+    @Get("detail/brand/by-year")
+    async detailTotalProductOfBrandOfYear(@Query() detailYearEachBrandDto: DetailYearEachBrandDto) {
+        const result = await this.revenueService.detailTotalProductOfBrandOfYear(detailYearEachBrandDto);
+        return { message: "Get Detail Revenue Of Brand By Year succeed.", result }
+    }
+
+    // ======================================== REVENUE - YEAR ========================================
+    @Get("detail/by-year")
+    async detailRevenueOfYear(@Query() detailYearDto: DetailYearDto) {
+        const result = await this.revenueService.detailRevenueOfYear(detailYearDto);
+        return { message: "Get Detail Revenue Of Year succeed.", result }
+    }
+
     // ======================================== TESST ========================================
     @Get("test")
-    async test() {
+    async test(@Query() detailYearEachBrandDto: DetailYearEachCategoryDto) {
         const today = new Date();
         const time = StartEndOfMonth(today.getMonth() + 1, today.getFullYear());
         const firstOfMonth = time.start;
         const firstOfNextMonth = time.end;
-        const result = await this.revenueService.topUserThisMonth();
+        const result = await this.revenueService.detailTotalProductOfCategoryOfYear(detailYearEachBrandDto);
         return { message: "abc", result }
     }
 }
