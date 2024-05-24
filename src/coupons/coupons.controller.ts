@@ -3,7 +3,7 @@ import { Types } from 'mongoose';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
 import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
 import { CouponsService } from './coupons.service';
-import { CreateCouponDto, CreateUserCouponReviewDto, PaginationDto, PaginationUserDto, PaginationUserValidDto, UpdateCouponDto } from './dto';
+import { CreateCouponDto, CreateUserCouponReviewDto, PaginationDto, PaginationUserDto, PaginationUserStatusDto, PaginationUserValidDto, UpdateCouponDto } from './dto';
 
 @Controller('coupons')
 @UseInterceptors(TransformResponseInterceptor)
@@ -33,9 +33,15 @@ export class CouponsController {
     @Get("find/by-user/valid")
     async getListOfValidCouponForUser(@Query() paginationUserValidDto: PaginationUserValidDto) {
         const result = await this.couponsService.getListOfValidCouponsForUser(paginationUserValidDto);
-        console.log("paginationUserValidDto: ", paginationUserValidDto.amount);
 
         return { message: "Get List Coupon Of User succeed.", result: result.data, pages: result.pages }
+    }
+
+    @Get("find/by-user/by-status")
+    async getByStatus(@Query() paginationUserStatusDto: PaginationUserStatusDto) {
+        const result = await this.couponsService.getByStatus(paginationUserStatusDto);
+
+        return { message: "Get List Coupon Of User By Status succeed.", result: result.data, pages: result.pages, total: result.total }
     }
 
     @Get("find/by-user")

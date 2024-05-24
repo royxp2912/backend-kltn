@@ -1,13 +1,15 @@
-import { Model, Types } from 'mongoose';
-import { PaginationRes, PaginationResUser } from './types';
 import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types, Document } from 'mongoose';
 import { Coupon } from 'src/schemas/Coupon.schema';
+import { PaginationRes, PaginationResUser } from './types';
 import { UserCoupon } from 'src/schemas/UserCoupon.schema';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import {
     CreateCouponDto, HandleResponseGetAllDto, HandleResponseGetListByUserDto, PaginationDto,
-    PaginationUserDto, PaginationUserValidDto, UpdateCouponDto
+    PaginationUserDto, PaginationUserStatusDto, PaginationUserValidDto, UpdateCouponDto
 } from './dto';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { USER_COUPON_STATUS } from 'src/constants/schema.enum';
 
 @Injectable()
 export class CouponsService {
@@ -52,6 +54,34 @@ export class CouponsService {
     }
 
     // ================================================ READ ================================================
+    async getByStatus(paginationUserStatusDto: PaginationUserStatusDto) {
+        const { user, status } = paginationUserStatusDto;
+        const pageSize = paginationUserStatusDto.pageSize || 1;
+        const pageNumber = paginationUserStatusDto.pageNumber || 1;
+        let result: (Document<unknown, {}, UserCoupon> & UserCoupon & { _id: Types.ObjectId })[];
+        if (status === USER_COUPON_STATUS.EXPIRED) {
+            result = await this.userCouponModel.find({ user: user, isExpire: true });
+        } else {
+            result = await this.userCouponModel.find({ user: user, isExpire: false });
+        }
+        return await this.fillInfoListCoupon(result, pageSize, pageNumber);
+    }
+
+    async fillInfoListCoupon(listCoupons: (Document<unknown, {}, UserCoupon> & UserCoupon & { _id: Types.ObjectId })[], pageSize: number, pageNumber: number) {
+        const pages: number = Math.ceil(listCoupons.length / pageSize);
+        const semiFinal = listCoupons.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+
+        const result = [];
+        for (const item of listCoupons) {
+            const found = await this.getById(item.coupon);
+            result.push({ ...found, _id: item._id, startDate: item.startDate, endDate: item.endDate })
+        }
+
+        const finalResult = { pages: pages, data: result, total: listCoupons.length };
+
+        return finalResult;
+    }
+
     async getById(couponId: Types.ObjectId) {
         const result = await this.couponModel.findById(couponId).select("-__v -createdAt -updatedAt -status").lean();
         if (!result) throw new NotFoundException("Coupon not found.");
@@ -166,4 +196,19 @@ export class CouponsService {
 
         return result;
     } // USER ==============================================================================================
+
+    // Check hẹn giờ - thêm trạng thái expire coupon of user
+    @Cron(CronExpression.EVERY_12_HOURS)
+    async checkExpireCoupon() {
+        console.log("loading - expire check - coupon...");
+        const listCouponsNotExpire = await this.userCouponModel.find({ isExpire: false });
+
+        const currentTime = new Date();
+        for (const coupon of listCouponsNotExpire) {
+            const expireDay = new Date(coupon.endDate);
+            if (currentTime.getTime() > expireDay.getTime()) {
+                await this.userCouponModel.findByIdAndUpdate(coupon._id, { isExpire: true });
+            }
+        }
+    }
 }

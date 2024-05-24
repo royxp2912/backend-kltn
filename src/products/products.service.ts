@@ -346,6 +346,8 @@ export class ProductsService {
 
     // ======================================== HOT DEAL ========================================
     async allSort(listProducts: (Document<unknown, {}, Product> & Product & { _id: Types.ObjectId })[], brand?: PRODUCT_BRAND, color?: VARIANT_COLOR, sort?: SORT) {
+        console.log("listProducts: ", listProducts);
+
         let final = [];
         let semiFinal = listProducts;
         if (brand) semiFinal = listProducts.filter(item => item.brand === brand);
@@ -359,7 +361,7 @@ export class ProductsService {
         if (sort === SORT.pDESC) final.sort((a, b) => b.price - a.price);
         if (sort === SORT.rASC) final.sort((a, b) => a.rating - b.rating);
         if (sort === SORT.rDESC) final.sort((a, b) => b.rating - a.rating);
-        if (sort === SORT.HOT) await this.sortHotDeal(final);
+        if (sort === SORT.HOT) return await this.sortHotDeal(final);
 
         return final;
     }

@@ -58,13 +58,12 @@ export class CommentsService {
 
         const found = await this.commentModel.find({ product: proId })
             .sort({ createdAt: -1 })
-            .limit(pageSize)
-            .skip(pageSize * (pageNumber - 1))
             .populate({ path: 'commentator', select: 'fullName avatar' })
             .select("-__v -createdAt -updatedAt");
 
         const pages: number = Math.ceil(found.length / pageSize);
-        const result: PaginationRes = { pages: pages, data: found };
+        const semiFinal = found.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+        const result: PaginationRes = { pages: pages, data: semiFinal, total: found.length };
         return result;
     }
 

@@ -98,6 +98,11 @@ export enum COUPON_STATUS {
     Locked = 'Locked'
 }
 
+export enum USER_COUPON_STATUS {
+    VALID = 'VALID',
+    EXPIRED = 'EXPIRED'
+}
+
 export enum NOTI_TYPE {
     OTHERS = 'OTHERS',
     COUPON_NEW = 'COUPON_NEW',

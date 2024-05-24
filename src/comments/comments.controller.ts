@@ -34,7 +34,7 @@ export class CommentsController {
     @Get("find/by-product")
     async getByProduct(@Query() paginationProductDto: PaginationProductDto) {
         const result = await this.commentsService.getByProduct(paginationProductDto);
-        return { message: "Create Comment succeed.", result: result.data, pages: result.pages }
+        return { message: "Create Comment succeed.", result: result.data, pages: result.pages, total: result.total }
     }
 
     // UPDATE ===============================================

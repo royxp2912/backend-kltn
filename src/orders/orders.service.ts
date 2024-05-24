@@ -20,7 +20,6 @@ import {
 } from './dto';
 import { CANCEL_ORDER_TYPE } from './constants';
 import { StartEndOfMonthAgo } from 'src/revenue/dateUtils';
-import { isNotEmpty } from 'class-validator';
 
 @Injectable()
 export class OrdersService {
@@ -346,6 +345,7 @@ export class OrdersService {
         return quantitySold;
     }
 
+    // Check hẹn giờ - hủy order chưa thanh toán online
     @Cron(CronExpression.EVERY_HOUR)
     // @Cron(CronExpression.EVERY_10_SECONDS) // test
     async cancelOrderExpirePayment() {
