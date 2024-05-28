@@ -25,7 +25,7 @@ export class CommentsService {
 
     // CREATE ===============================================
     async create(createCommentDto: CreateCommentDto): Promise<void> {
-        const { commentator, product } = createCommentDto;
+        const { commentator, product, order } = createCommentDto;
         await this.usersService.getById(commentator);
         const productExist = await this.checkProductExist(product);
         await this.checkCommentExist(commentator, product);
@@ -33,8 +33,9 @@ export class CommentsService {
         if (!isPurchased) throw new BadRequestException("Need to purchase the product to be able to rate the product.");
         console.log(isPurchased.status);
 
-        if (isPurchased.status !== ORDER_STATUS.DeliveredSuccessfully && isPurchased.status !== ORDER_STATUS.Successful) {
-            throw new BadRequestException("The order has not been successfully delivered so cannot comment..");
+        const orderInfo = await this.orderModel.findOne({ orderId: order });
+        if (orderInfo.status !== ORDER_STATUS.DeliveredSuccessfully && orderInfo.status !== ORDER_STATUS.Successful) {
+            throw new BadRequestException("The order has not been successfully delivered so cannot comment.");
         }
 
         const newCmt = new this.commentModel(createCommentDto);
