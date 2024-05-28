@@ -74,7 +74,7 @@ export class CouponsService {
         const result = [];
         for (const item of listCoupons) {
             const found = await this.getById(item.coupon);
-            result.push({ ...found, _id: item._id, startDate: item.startDate, endDate: item.endDate })
+            result.push({ ...found, _id: item._id, startDate: item.startDate, endDate: item.endDate, isExpire: item.isExpire })
         }
 
         const finalResult = { pages: pages, data: result, total: listCoupons.length };
@@ -190,7 +190,7 @@ export class CouponsService {
         const final = [];
         for (const item of semiFinal) {
             const found = await this.getById(item.coupon);
-            final.push({ ...found, _id: item._id, startDate: item.startDate, endDate: item.endDate });
+            final.push({ ...found, _id: item._id, startDate: item.startDate, endDate: item.endDate, isExpire: item.isExpire });
         }
         const result: PaginationResUser = { pages: pages, data: final }
 
