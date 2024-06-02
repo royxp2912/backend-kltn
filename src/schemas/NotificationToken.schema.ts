@@ -2,7 +2,7 @@ import { SchemaTypes, Types } from "mongoose";
 import { NOTI_TOKEN_STATUS } from "src/constants/schema.enum";
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
 
-@Schema({ timestamps: true })
+@Schema({ collection: 'notificatio_tokens', timestamps: true })
 export class NotificationToken {
 
     @Prop({ type: SchemaTypes.ObjectId, ref: 'User', required: true })

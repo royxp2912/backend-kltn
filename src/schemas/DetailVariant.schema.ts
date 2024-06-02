@@ -1,7 +1,7 @@
 import { SchemaTypes, Types } from "mongoose";
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
 
-@Schema({ timestamps: true })
+@Schema({ collection: 'detail_variants', timestamps: true })
 export class DetailVariant {
     @Prop({ type: SchemaTypes.ObjectId, ref: 'Variant', required: true })
     variant: Types.ObjectId;

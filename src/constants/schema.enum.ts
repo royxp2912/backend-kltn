@@ -126,3 +126,8 @@ export enum SYNTAX_MONTH {
     Nov,
     Dec,
 }
+
+export enum BILLING_METHOD {
+    CASH = 'CASH',
+    TRANSFER = 'TRANSFER',
+}
