@@ -3,6 +3,9 @@ import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
 
 @Schema({ collection: 'good_receipts', timestamps: true })
 export class GoodReceipt {
+    @Prop({ unique: true, required: true })
+    receiptId: string;
+
     @Prop({ type: SchemaTypes.ObjectId, ref: 'Supplier', required: true })
     supplier: Types.ObjectId;
 

@@ -346,8 +346,6 @@ export class ProductService {
 
     // ======================================== HOT DEAL ========================================
     async allSort(listProducts: (Document<unknown, {}, Product> & Product & { _id: Types.ObjectId })[], brand?: PRODUCT_BRAND, color?: VARIANT_COLOR, sort?: SORT) {
-        console.log("listProducts: ", listProducts);
-
         let final = [];
         let semiFinal = listProducts;
         if (brand) semiFinal = listProducts.filter(item => item.brand === brand);

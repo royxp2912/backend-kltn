@@ -5,8 +5,8 @@ import { ReceiptVariant } from "src/constants/schema.type";
 
 @Schema({ collection: 'detail_good_receipts', timestamps: true })
 export class DetailGoodReceipt {
-    @Prop({ type: SchemaTypes.ObjectId, ref: 'GoodReceipt', required: true })
-    receipt: Types.ObjectId;
+    @Prop({ required: true })
+    receipt: string;
 
     @Prop({ required: true })
     name_product: string;

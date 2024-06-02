@@ -1,15 +1,20 @@
-import { Model, Types } from 'mongoose';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import * as moment from 'moment';
+import { v4 as uuidv4 } from 'uuid';
 import { InjectModel } from '@nestjs/mongoose';
-import { Supplier } from 'src/schemas/supplier.schema';
-import { GoodReceipt } from 'src/schemas/goodReceipt.schema';
-import { DetailGoodReceipt } from 'src/schemas/detailGoodReceipt.schema';
-import {
-    CreateSupplierDto, UpdateSupplierDto
-} from './dto';
-import { CreateGoodReceiptDto } from './dto/CreateGoodReceipt.dto';
 import { User } from 'src/schemas/user.schema';
+import { Model, Types, Document } from 'mongoose';
+import { Supplier } from 'src/schemas/supplier.schema';
 import { USER_ROLES } from 'src/constants/schema.enum';
+import { GoodReceipt } from 'src/schemas/goodReceipt.schema';
+import { CreateGoodReceiptDto } from './dto/CreateGoodReceipt.dto';
+import { DetailGoodReceipt } from 'src/schemas/detailGoodReceipt.schema';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+    DetailReceipt, GoodReceiptType, PaginationAllReceipt, PaginationAllSupplier
+} from './types';
+import {
+    CreateSupplierDto, PaginationAllDto, UpdateSupplierDto
+} from './dto';
 
 @Injectable()
 export class GoodReceiptService {
@@ -28,19 +33,49 @@ export class GoodReceiptService {
         await this.getSupplierById(others.supplier);
         await this.checkConfirmerExist(others.confirmer);
 
-        const newReceipt = new this.goodReceiptModel(others);
+        const newReceipt = new this.goodReceiptModel({ ...others, receiptId: uuidv4() });
         const savedReceipt = await newReceipt.save();
 
         for (const item of details) {
-            const newDetail = new this.detailGoodReceiptModel({ ...item, receipt: savedReceipt._id });
+            const newDetail = new this.detailGoodReceiptModel({ ...item, receipt: savedReceipt.receiptId });
             await newDetail.save();
         }
     } // POST
 
     // ======================================== PUT ========================================
     // ======================================== GET ========================================
-    // ======================================= DELETE ======================================
+    async getDetailGoodReceiptById(receiptId: string): Promise<DetailReceipt> {
+        const foundReceipt = await this.goodReceiptModel.findOne({ receiptId: receiptId }).select("-createdAt -updatedAt -__v");
+        if (!foundReceipt) throw new NotFoundException("Good Receipt not found!");
+        const supplier = await this.supplierModel.findById(foundReceipt.supplier);
+        const confirmer = await this.userModel.findById(foundReceipt.confirmer);
+        const detailReceipt = await this.detailGoodReceiptModel.find({ receipt: receiptId }).select(" -createdAt -updatedAt -__v");
+        const result: DetailReceipt = {
+            receiptId: foundReceipt.receiptId,
+            supplier: supplier.supplier_name,
+            confirmer: confirmer.fullName,
+            confirmation_date: moment(foundReceipt.confirmation_date).format("DD/MM/YYYY"),
+            total_receipt: foundReceipt.total,
+            notes: foundReceipt.notes,
+            details: detailReceipt,
+        };
 
+        return result;
+    }
+
+    async getAllGoodReceipt(paginationAllDto: PaginationAllDto) {
+        const pageSize = paginationAllDto.pageSize || 6;
+        const pageNumber = paginationAllDto.pageNumber || 1;
+        const listReceipts = await this.goodReceiptModel.find().select("-createdAt -updatedAt -__v -_id");
+
+        return await this.handleResponseGetList(pageSize, pageNumber, listReceipts);
+    }
+
+    // ======================================= DELETE ======================================
+    async deleteAllReceipts(): Promise<void> {
+        await this.goodReceiptModel.deleteMany({});
+        await this.detailGoodReceiptModel.deleteMany({});
+    }
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SUPPLIER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     async createSupplier(createSupplierDto: CreateSupplierDto) {
@@ -54,6 +89,26 @@ export class GoodReceiptService {
         return found;
     } // GET
 
+    async getAllSupplier(paginationAllDto: PaginationAllDto) {
+        const pageSize = paginationAllDto.pageSize || 6;
+        const pageNumber = paginationAllDto.pageNumber || 1;
+        const listSuppliers = await this.supplierModel.find().select("-createdAt -updatedAt -__v").lean();
+
+        const pages: number = Math.ceil(listSuppliers.length / pageSize);
+        const semiFinal = listSuppliers.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+
+        const final = [];
+        for (const supplier of semiFinal) {
+            const totalReceipt = await this.goodReceiptModel.find({ supplier: supplier });
+            const item = { ...supplier, total_receipt: totalReceipt.length };
+            final.push(item);
+        }
+
+        const result: PaginationAllSupplier = { pages: pages, data: final }
+
+        return result;
+    } // GET
+
     async updateSupplier(updateSupplierDto: UpdateSupplierDto) {
         const { supplier } = updateSupplierDto;
         const updated = await this.supplierModel.findByIdAndUpdate(
@@ -63,10 +118,47 @@ export class GoodReceiptService {
         if (!updated) throw new NotFoundException("Supplier not found!");
     } // PUT
 
+    async deleteSupplierById(supId: Types.ObjectId): Promise<void> {
+        const deleted = await this.supplierModel.findByIdAndDelete(supId);
+        if (!deleted) throw new NotFoundException("Supplier not found!");
+    } // DELETE
+
+    async deleteAllSuppliers(): Promise<void> {
+        await this.supplierModel.deleteMany({});
+    } // DELETE
+
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SPECIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     async checkConfirmerExist(confirmer: Types.ObjectId): Promise<void> {
         const found = await this.userModel.findById(confirmer);
         if (!found) throw new NotFoundException("Confirmer not found!");
         if (found.role !== USER_ROLES.Admin && found.role !== USER_ROLES.Employee) throw new BadRequestException("Confirmer must be an Employee or Admin.");
+    }
+
+    async fillInfoGoodReceipts(listReceipts: (Document<unknown, {}, GoodReceipt> & GoodReceipt & { _id: Types.ObjectId; })[]) {
+        const result = [];
+        for (const receipt of listReceipts) {
+            const supplier = await this.supplierModel.findById(receipt.supplier);
+            const confirmer = await this.userModel.findById(receipt.confirmer);
+            const item: GoodReceiptType = {
+                receiptId: receipt.receiptId,
+                supplier: supplier.supplier_name,
+                confirmer: confirmer.fullName,
+                confirmation_date: moment(receipt.confirmation_date).format("DD/MM/YYYY"),
+                total_receipt: receipt.total,
+                notes: receipt.notes,
+            }
+            result.push(item);
+        }
+        return result;
+    }
+
+    async handleResponseGetList(pageSize: number, pageNumber: number, listReceipts: (Document<unknown, {}, GoodReceipt> & GoodReceipt & { _id: Types.ObjectId; })[]) {
+
+        const pages: number = Math.ceil(listReceipts.length / pageSize);
+        const semiFinal = listReceipts.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+        const final: GoodReceiptType[] = await this.fillInfoGoodReceipts(semiFinal);
+        const result: PaginationAllReceipt = { pages: pages, data: final }
+
+        return result;
     }
 }
