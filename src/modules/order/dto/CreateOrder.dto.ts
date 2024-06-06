@@ -1,8 +1,8 @@
 import { Types } from "mongoose";
 import { IsObjectId } from "class-validator-mongo-object-id";
 import { ORDER_PAYMENT_METHOD } from "src/constants/schema.enum";
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { DetailProductInOrder } from "src/constants/schema.type";
+import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional } from "class-validator";
 
 export class CreateOrderDto {
     @IsObjectId({ message: "user must be an ObjectId." })
@@ -29,7 +29,7 @@ export class CreateOrderDto {
     @IsOptional()
     discountAmount?: number;
 
-    @IsObjectId({ message: "deliveryAddress must be an ObjectId." })
+    @IsObjectId({ message: "coupon must be an ObjectId." })
     @IsOptional()
     coupon?: Types.ObjectId;
 }

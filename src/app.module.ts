@@ -19,6 +19,7 @@ import { GoodReceiptModule } from './modules/good-receipt/good-receipt.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { OrderAddressModule } from './modules/order-address/order-address.module';
 import { DeliveryAddressModule } from './modules/delivery-address/delivery-address.module';
+import { UtilModule } from './modules/util/util.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { DeliveryAddressModule } from './modules/delivery-address/delivery-addre
     MulterModule.register({
       dest: './kltn',
     }),
+    UtilModule,
     AuthModule,
     UserModule,
     CartModule,
