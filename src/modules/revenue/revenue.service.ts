@@ -34,13 +34,13 @@ export class RevenueService {
         const pageSize = paginationInventoryDto.pageSize || 6;
         const pageNumber = paginationInventoryDto.pageNumber || 1;
 
-        const listProducts = (await this.productModel.find({}).select("_id")).map(item => item._id);
+        const listProducts = await this.productModel.find({}).select("_id name");
         const detailNumberOfProductSoldOneMonthAgo = await this.getDetailNumberOfProductSoldOneMonthAgo();
         const result = [];
         for (const product of listProducts) {
             const totalInventoryOfProduct = await this.getTotalInventoryOfProduct(product._id);
             const numberOfSold = detailNumberOfProductSoldOneMonthAgo[product._id as any] || 0;
-            result.push({ product: product._id, totalInventory: totalInventoryOfProduct, sold: numberOfSold });
+            result.push({ product: product._id, name: product.name, totalInventory: totalInventoryOfProduct, sold: numberOfSold });
         }
 
         result.sort((a, b) => b.totalInventory - a.totalInventory);
