@@ -1,7 +1,7 @@
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { Product } from 'src/schemas/product.schema';
 import { Variant } from 'src/schemas/vriant.schema';
+import { Product } from 'src/schemas/product.schema';
 import { ListColorAndSize, VariantDetail } from './types';
 import { DetailVariant } from 'src/schemas/detailVariant.schema';
 import { CreateImageVariantDto } from './dto/CreateImageVariant.dto';
@@ -260,7 +260,7 @@ export class VariantService {
     }
 
     // ============================================= ##################### =============================================
-    // ============================================= VARIANT - COLOR =============================================
+    // ================================================= VARIANT - COLOR ===============================================
     // ============================================= ##################### =============================================
 
     // POST ====================================================

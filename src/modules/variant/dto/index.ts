@@ -1,5 +1,4 @@
 export * from "./Variant.dto";
-export * from "./UpdateDetailVariant.dto";
 export * from "./DetailVariant.dto";
 export * from "./IncreaseOrReduce.dto";
 export * from "./GetVariantByInfo.dto";
@@ -9,3 +8,4 @@ export * from "./GetBySizeAProduct.dto";
 export * from "./UpdateImageVariant.dto";
 export * from "./GetByColorAProduct.dto";
 export * from "./CreateDetailVariant.dto";
+export * from "./UpdateDetailVariant.dto";

@@ -5,13 +5,14 @@ import { Order } from 'src/schemas/order.schema';
 import mongoose, { Model, Types } from 'mongoose';
 import { Variant } from 'src/schemas/vriant.schema';
 import { Product } from 'src/schemas/product.schema';
-import { TopProductInfo, TopUserInfo } from './types';
+import { PaginationInventory, TopProductInfo, TopUserInfo } from './types';
 import { Category } from 'src/schemas/category.schema';
 import { ProductService } from '../product/product.service';
 import { DAY_WEEK, TYPE_REVENUE } from 'src/constants/dto..enum';
 import { PRODUCT_BRAND, SYNTAX_MONTH } from 'src/constants/schema.enum';
 import { StartEndOfDay, StartEndOfMonth, StartEndOfMonthAgo, StartEndOfWeek } from './dateUtils';
-import { DetailMonthDto, DetailYearDto, DetailYearEachBrandDto, DetailYearEachCategoryDto, RevenueMonthDto } from './dto';
+import { DetailMonthDto, DetailYearDto, DetailYearEachBrandDto, DetailYearEachCategoryDto, PaginationInventoryDto, RevenueMonthDto } from './dto';
+import { DetailVariant } from 'src/schemas/detailVariant.schema';
 
 @Injectable()
 export class RevenueService {
@@ -21,8 +22,72 @@ export class RevenueService {
         @InjectModel(Product.name) private readonly productModel: Model<Product>,
         @InjectModel(Variant.name) private readonly variantModel: Model<Variant>,
         @InjectModel(Category.name) private readonly categoryModel: Model<Category>,
+        @InjectModel(DetailVariant.name) private readonly detailVariantModel: Model<DetailVariant>,
         private readonly productService: ProductService,
     ) { }
+
+
+    // ============================================= ##################### =======================================
+    // ================================================= INVENTORY ===============================================
+    // ============================================= ##################### =======================================
+    async detailInventory(paginationInventoryDto: PaginationInventoryDto) {
+        const pageSize = paginationInventoryDto.pageSize || 6;
+        const pageNumber = paginationInventoryDto.pageNumber || 1;
+
+        const listProducts = (await this.productModel.find({}).select("_id")).map(item => item._id);
+        const detailNumberOfProductSoldOneMonthAgo = await this.getDetailNumberOfProductSoldOneMonthAgo();
+        const result = [];
+        for (const product of listProducts) {
+            const totalInventoryOfProduct = await this.getTotalInventoryOfProduct(product._id);
+            const numberOfSold = detailNumberOfProductSoldOneMonthAgo[product._id as any] || 0;
+            result.push({ product: product._id, totalInventory: totalInventoryOfProduct, sold: numberOfSold });
+        }
+
+        result.sort((a, b) => b.totalInventory - a.totalInventory);
+        const pages: number = Math.ceil(result.length / pageSize);
+        const semiFinal = result.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+        const final: PaginationInventory = { pages, data: semiFinal };
+
+        return final;
+    }
+
+    async getDetailNumberOfProductSoldOneMonthAgo() {
+        const today = new Date();
+        const time = StartEndOfMonthAgo(today.getDate(), today.getMonth(), today.getFullYear());
+        const startDay = time.start;
+        const endDay = time.end;
+
+        const listProduct = await this.orderModel.find({
+            createdAt: {
+                $gte: startDay,
+                $lte: endDay,
+            },
+        }).select('items.product items.quantity');
+
+        const soldList = listProduct.flatMap((cur) => cur.items.map((item) => { return { product: item.product, sold: item.quantity } }));
+
+        const productSoldMap = {}
+        soldList.forEach(item => {
+            if (productSoldMap[item.product as any]) {
+                productSoldMap[item.product as any] += item.sold;
+            } else {
+                productSoldMap[item.product as any] = item.sold;
+            }
+        });
+        return productSoldMap;
+    }
+
+    async getTotalInventoryOfProduct(proId: Types.ObjectId) {
+        const listVars = await this.variantModel.find({ product: proId }).select("_id");
+        let totalInventory = 0;
+        for (const variant of listVars) {
+            const listQuantity = await this.detailVariantModel.find({ variant: variant._id });
+            const total = listQuantity.reduce((acc, cur) => acc + cur.quantity, 0);
+            totalInventory += total;
+        }
+
+        return totalInventory;
+    }
 
     // ========================================= API - REVENUE - YEAR =========================================
     async detailRevenueOfYear(detailYearDto: DetailYearDto) {

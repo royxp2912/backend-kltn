@@ -1,9 +1,11 @@
-import { DetailMonthDto, DetailYearDto, DetailYearEachBrandDto, DetailYearEachCategoryDto, RevenueMonthDto } from './dto';
 import { StartEndOfMonth } from './dateUtils';
 import { RevenueService } from './revenue.service';
 import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
 import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
-import { PRODUCT_BRAND } from 'src/constants/schema.enum';
+import {
+    DetailMonthDto, DetailYearDto, DetailYearEachBrandDto, DetailYearEachCategoryDto, PaginationInventoryDto, RevenueMonthDto
+} from './dto';
+import { Types } from 'mongoose';
 
 @Controller('revenue')
 @UseInterceptors(TransformResponseInterceptor)
@@ -11,6 +13,12 @@ export class RevenueController {
     constructor(private readonly revenueService: RevenueService) { }
 
     // ========================================= READ =========================================
+    @Get("inventory")
+    async getListInventory(@Query() paginationInventoryDto: PaginationInventoryDto) {
+        const result = await this.revenueService.detailInventory(paginationInventoryDto);
+        return { message: "Get Hot Products succeed.", result: result.data, pages: result.pages, total: result.data.length }
+    } // inventory
+
     @Get("products/hot")
     async hotProductsMonthAgo() {
         const result = await this.revenueService.hotProductMonthAgo();
@@ -171,12 +179,12 @@ export class RevenueController {
 
     // ======================================== TESST ========================================
     @Get("test")
-    async test(@Query() detailYearEachBrandDto: DetailYearEachCategoryDto) {
+    async test(@Query("product") product: Types.ObjectId) {
         const today = new Date();
         const time = StartEndOfMonth(today.getMonth() + 1, today.getFullYear());
         const firstOfMonth = time.start;
         const firstOfNextMonth = time.end;
-        const result = await this.revenueService.detailTotalProductOfCategoryOfYear(detailYearEachBrandDto);
+        const result = await this.revenueService.getDetailNumberOfProductSoldOneMonthAgo();
         return { message: "abc", result }
     }
 }
