@@ -123,11 +123,13 @@ export class RevenueService {
 
     async detailTotalProductOfCategoryOfYear(detailYearEachCategoryDto: DetailYearEachCategoryDto) {
         const { category, year } = detailYearEachCategoryDto;
+        const cateId = await this.categoryModel.findOne({ name: { $regex: category, $options: 'i' } });
+        console.log("id: ", cateId._id);
 
         let details = [];
         let first = 0;
         while (first < 12) {
-            let revenueOfMonth = await this.totalProductOfCategoryOfMonth(category, first + 1, year);
+            let revenueOfMonth = await this.totalProductOfCategoryOfMonth(cateId._id, first + 1, year);
             details.push({ month: SYNTAX_MONTH[first], total: revenueOfMonth });
 
             first += 1;

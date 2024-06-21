@@ -1,12 +1,10 @@
-import { Types } from "mongoose";
 import { Transform } from "class-transformer";
-import { IsNotEmpty, IsNumber } from "class-validator";
-import { IsObjectId } from "class-validator-mongo-object-id";
+import { IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class DetailYearEachCategoryDto {
-    @IsObjectId({ message: "category must be an ObjectId" })
+    @IsString()
     @IsNotEmpty()
-    category: Types.ObjectId;
+    category: string;
 
     @Transform(({ value }) => parseInt(value, 10))
     @IsNumber()
