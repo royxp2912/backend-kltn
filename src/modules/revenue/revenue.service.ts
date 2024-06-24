@@ -8,7 +8,7 @@ import { Product } from 'src/schemas/product.schema';
 import { PaginationInventory, TopProductInfo, TopUserInfo } from './types';
 import { Category } from 'src/schemas/category.schema';
 import { ProductService } from '../product/product.service';
-import { DAY_WEEK, TYPE_REVENUE } from 'src/constants/dto..enum';
+import { DAY_WEEK, INVENTORY_SORT, TYPE_REVENUE } from 'src/constants/dto..enum';
 import { PRODUCT_BRAND, SYNTAX_MONTH } from 'src/constants/schema.enum';
 import { StartEndOfDay, StartEndOfMonth, StartEndOfMonthAgo, StartEndOfWeek } from './dateUtils';
 import { DetailMonthDto, DetailYearDto, DetailYearEachBrandDto, DetailYearEachCategoryDto, PaginationInventoryDto, RevenueMonthDto } from './dto';
@@ -31,6 +31,7 @@ export class RevenueService {
     // ================================================= INVENTORY ===============================================
     // ============================================= ##################### =======================================
     async detailInventory(paginationInventoryDto: PaginationInventoryDto) {
+        const sort = paginationInventoryDto.sort || INVENTORY_SORT.HIGHSTOCK;
         const pageSize = paginationInventoryDto.pageSize || 6;
         const pageNumber = paginationInventoryDto.pageNumber || 1;
 
@@ -44,6 +45,9 @@ export class RevenueService {
         }
 
         result.sort((a, b) => b.totalInventory - a.totalInventory);
+        if (sort === INVENTORY_SORT.LOWSTOCK) {
+            result.sort((a, b) => a.totalInventory - b.totalInventory);
+        }
         const pages: number = Math.ceil(result.length / pageSize);
         const semiFinal = result.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
         const final: PaginationInventory = { pages, data: semiFinal };

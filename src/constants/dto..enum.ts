@@ -13,6 +13,11 @@ export enum TYPE_REVENUE {
     INCREASE = 'INCREASE',
 }
 
+export enum INVENTORY_SORT {
+    LOWSTOCK = 'LOWSTOCK',
+    HIGHSTOCK = 'HIGHSTOCK',
+}
+
 export enum DAY_WEEK {
     Mon = 0,
     Tue = 1,
