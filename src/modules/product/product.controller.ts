@@ -127,6 +127,18 @@ export class ProductController {
         return { message: "Get Favorite List of User Succeed", result: result.data, pages: result.pages };
     }
 
+    @Get("by-admin")
+    async getAllByAdmin(@Query() getAllProductDto: GetAllProductDto, @Req() req) {
+        const refreshToken = req.cookies["refreshToken"]
+        if (refreshToken) {
+            const payload = getPayloadOfToken(refreshToken) as Payload;
+            getAllProductDto.user = payload.userId;
+        }
+
+        const result = await this.productService.getAll(getAllProductDto);
+        return { message: "Get All Product Succeed", result: result.data, pages: result.pages };
+    }
+
     @Get()
     async getAll(@Query() getAllProductDto: GetAllProductDto, @Req() req) {
         const refreshToken = req.cookies["refreshToken"]
@@ -135,7 +147,7 @@ export class ProductController {
             getAllProductDto.user = payload.userId;
         }
 
-        const result = await this.productService.getAll(getAllProductDto);
+        const result = await this.productService.getAllByUser(getAllProductDto);
         return { message: "Get All Product Succeed", result: result.data, pages: result.pages };
     }
 

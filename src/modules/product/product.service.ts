@@ -94,6 +94,7 @@ export class ProductService {
                 { brand: { $regex: keyword, $options: 'i' } },
                 { category: { $in: await this.categoryModel.find({ name: { $regex: keyword, $options: 'i' } }) } },
             ],
+            status: PRODUCT_STATUS.Active,
         }).select("_id price rating brand");
 
         const final = await this.allSort(found, brand, color, sort);
@@ -160,7 +161,7 @@ export class ProductService {
 
         const pageSize = getByCategoryDto.pageSize || 1;
         const pageNumber = getByCategoryDto.pageNumber || 1;
-        const found = await this.productModel.find({ category: cateId })
+        const found = await this.productModel.find({ category: cateId, status: PRODUCT_STATUS.Active })
             .sort({ createdAt: -1 })
             .populate({ path: "category", select: "name" })
             .select('-__v -createdAt -updatedAt');
@@ -186,6 +187,18 @@ export class ProductService {
         const pageSize = getAllProductDto.pageSize || 1;
         const pageNumber = getAllProductDto.pageNumber || 1;
         const found = await this.productModel.find()
+            .sort({ createdAt: -1 })
+            .populate({ path: "category", select: "name" })
+            .select('-__v -createdAt -updatedAt');
+
+        return await this.handleResponseGetList({ user, listProducts: found, pageSize, pageNumber });
+    }
+
+    async getAllByUser(getAllProductDto: GetAllProductDto): Promise<GetAllProductRes> {
+        const user = getAllProductDto.user;
+        const pageSize = getAllProductDto.pageSize || 1;
+        const pageNumber = getAllProductDto.pageNumber || 1;
+        const found = await this.productModel.find({ status: PRODUCT_STATUS.Active })
             .sort({ createdAt: -1 })
             .populate({ path: "category", select: "name" })
             .select('-__v -createdAt -updatedAt');
