@@ -1,6 +1,6 @@
 export enum TYPE_PRICE_MANAGEMENT {
-    PRICE = "PRICE",
-    PERCENT = "PERCENT",
+    UPADOWN = "UPADOWN",
+    NEWVALUE = "NEWVALUE",
 }
 
 export enum OPTION_PRICE_MANAGEMENT {

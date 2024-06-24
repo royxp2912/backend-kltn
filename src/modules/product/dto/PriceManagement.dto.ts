@@ -22,8 +22,8 @@ export class PriceManagementDto {
     value: number;
 
     @IsEnum(OPTION_PRICE_MANAGEMENT)
-    @IsNotEmpty()
-    option: OPTION_PRICE_MANAGEMENT;
+    @IsOptional()
+    option?: OPTION_PRICE_MANAGEMENT;
 
     @IsEnum(TYPE_PRICE_MANAGEMENT)
     @IsNotEmpty()

@@ -299,15 +299,14 @@ export class ProductService {
         const { part, ...others } = priceManagementDto;
 
         const updateQuery = {};
-        if (others.type === TYPE_PRICE_MANAGEMENT.PERCENT) {
-            const changeValue = others.option === OPTION_PRICE_MANAGEMENT.INCREASE ? (1 + others.value / 100).toFixed(2) : (1 - others.value / 100).toFixed(2);
-            updateQuery["$mul"] = { "price": changeValue }
+        if (others.type === TYPE_PRICE_MANAGEMENT.NEWVALUE) {
+            const newValue = others.value;
+            updateQuery["$set"] = { "price": newValue }
         } else {
             const changeValue = others.option === OPTION_PRICE_MANAGEMENT.INCREASE ? others.value : - others.value;
             updateQuery["$inc"] = { "price": changeValue }
         }
         console.log("updateQuery: ", updateQuery);
-
 
         switch (part) {
             case PART_PRICE_MANAGEMENT.BRAND:
@@ -338,9 +337,6 @@ export class ProductService {
 
         // await this.productModel.updateMany({ category: category }, updateQuery);
         await this.productModel.updateMany({ category: category }, updateQuery);
-        await this.productModel.aggregate([
-            { $project: { price: { $round: ["$price", 2] } } }
-        ])
     }
 
     async updatePriceOfSelected(updatePriceDto: UpdatePriceDto) {
