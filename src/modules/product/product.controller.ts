@@ -127,7 +127,7 @@ export class ProductController {
         return { message: "Get Favorite List of User Succeed", result: result.data, pages: result.pages };
     }
 
-    @Get("by-admin")
+    @Get("action/by-admin")
     async getAllByAdmin(@Query() getAllProductDto: GetAllProductDto, @Req() req) {
         const refreshToken = req.cookies["refreshToken"]
         if (refreshToken) {
