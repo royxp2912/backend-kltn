@@ -73,6 +73,12 @@ export class UserController {
     }
 
     // GET ========================================
+    @Get("find/role-admin")
+    async getListAdmin() {
+        const result = await this.userService.getListAdmin();
+        return { message: "Get List Admin succeed", result }
+    }
+
     @Get("find/by-email")
     async getByEmail(@Query() getByEmailDto: GetByEmailDto) {
         const result = await this.userService.getByEmail(getByEmailDto);

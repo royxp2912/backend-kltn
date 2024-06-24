@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
-import { USER_STATUS } from "src/constants/schema.enum";
+import { USER_ROLES, USER_STATUS } from "src/constants/schema.enum";
 import { User } from "src/schemas/user.schema";
 import { compare, encode } from "src/utils/bcrypt/bcrypt";
 import { GetByEmailDto, GetByStatusDto, UpdateUserDto, GetAllDto, UpdatePasswordDto, UpdateEmailDto, FindByKeywordDto } from "./dto";
@@ -149,6 +149,13 @@ export class UserService {
         }
         return result;
     }
+
+    async getListAdmin() {
+        const found = await this.userModel.find({ role: USER_ROLES.Admin })
+            .select('fullName');
+        return found;
+    }
+
 
     // DELETE ========================================
     async deleteAll(): Promise<void> {
