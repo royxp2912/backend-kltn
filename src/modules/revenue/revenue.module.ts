@@ -6,7 +6,7 @@ import { ProductModule } from '../product/product.module';
 import { User, UserSchema } from 'src/schemas/user.schema';
 import { Order, OrderSchema } from 'src/schemas/order.schema';
 import { Product, ProductSchema } from 'src/schemas/product.schema';
-import { Variant, VariantSchema } from 'src/schemas/vriant.schema';
+import { Variant, VariantSchema } from 'src/schemas/variant.schema';
 import { Category, CategorySchema } from 'src/schemas/category.schema';
 import { DetailVariant, DetailVariantSchema } from 'src/schemas/detailVariant.schema';
 

@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/schemas/user.schema';
 import { Order } from 'src/schemas/order.schema';
 import mongoose, { Model, Types } from 'mongoose';
-import { Variant } from 'src/schemas/vriant.schema';
+import { Variant } from 'src/schemas/variant.schema';
 import { Product } from 'src/schemas/product.schema';
 import { PaginationInventory, TopProductInfo, TopUserInfo } from './types';
 import { Category } from 'src/schemas/category.schema';
@@ -632,7 +632,9 @@ export class RevenueService {
 
     async fillInfoTopUser(userId: Types.ObjectId, spent: number): Promise<TopUserInfo> {
         const info = await this.userModel.findById(userId);
-
+        if (!info) return {
+            id: userId, name: "", image: "", spent: spent
+        }
         return {
             id: userId,
             name: info.fullName,

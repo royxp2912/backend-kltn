@@ -1,6 +1,6 @@
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { Variant } from 'src/schemas/vriant.schema';
+import { Variant } from 'src/schemas/variant.schema';
 import { Product } from 'src/schemas/product.schema';
 import { ListColorAndSize, VariantDetail } from './types';
 import { DetailVariant } from 'src/schemas/detailVariant.schema';

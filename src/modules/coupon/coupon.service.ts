@@ -3,13 +3,13 @@ import { Model, Types, Document } from 'mongoose';
 import { Coupon } from 'src/schemas/coupon.schema';
 import { PaginationRes, PaginationResUser } from './types';
 import { UserCoupon } from 'src/schemas/userCoupon.schema';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, Type } from '@nestjs/common';
 import {
     CreateCouponDto, HandleResponseGetAllDto, HandleResponseGetListByUserDto, PaginationDto,
     PaginationUserDto, PaginationUserStatusDto, PaginationUserValidDto, UpdateCouponDto
 } from './dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { USER_COUPON_STATUS } from 'src/constants/schema.enum';
+import { COUPON_STATUS, USER_COUPON_STATUS } from 'src/constants/schema.enum';
 
 @Injectable()
 export class CouponService {
@@ -164,6 +164,22 @@ export class CouponService {
         const { coupon, ...others } = updateCouponDto;
         const updated = await this.couponModel.findByIdAndUpdate(coupon, { $set: others });
         if (!updated) throw new NotFoundException("Coupon not found.");
+    }
+
+    async lockCoupon(couponId: Types.ObjectId): Promise<void> {
+        const founded = await this.couponModel.findById(couponId);
+        if (!founded) throw new NotFoundException("Coupon not found.");
+        if (founded.status !== COUPON_STATUS.Active) throw new BadRequestException("Coupon locked.");
+        founded.status = COUPON_STATUS.Locked;
+        await founded.save();
+    }
+
+    async unlockCoupon(couponId: Types.ObjectId): Promise<void> {
+        const founded = await this.couponModel.findById(couponId);
+        if (!founded) throw new NotFoundException("Coupon not found.");
+        if (founded.status !== COUPON_STATUS.Locked) throw new BadRequestException("Coupon is active.");
+        founded.status = COUPON_STATUS.Active;
+        await founded.save();
     }
 
     // =============================================== DELETE ===============================================

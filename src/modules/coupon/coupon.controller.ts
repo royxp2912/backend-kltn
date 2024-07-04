@@ -60,6 +60,18 @@ export class CouponController {
         return { message: "Update Coupon succeed." }
     }
 
+    @Put("lock/:couponId")
+    async lock(@Param("couponId") couponId: Types.ObjectId) {
+        await this.couponService.lockCoupon(couponId);
+        return { message: "Lock Coupon succeed." }
+    }
+
+    @Put("unLock/:couponId")
+    async unLock(@Param("couponId") couponId: Types.ObjectId) {
+        await this.couponService.unlockCoupon(couponId);
+        return { message: "Unlock Coupon succeed." }
+    }
+
     // =============================================== DELETE ===============================================
 
     // =============================================== SPECIAL ==============================================

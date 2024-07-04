@@ -8,7 +8,7 @@ import { CartService } from '../cart/cart.service';
 import { MailerService } from "@nestjs-modules/mailer";
 import { compare, encode } from "src/utils/bcrypt/bcrypt";
 import { JwtPayload, LoginResponse, Tokens } from "./types";
-import { AUTH_TOKENS, USER_ROLES } from "src/constants/schema.enum";
+import { AUTH_TOKENS, USER_ROLES, USER_STATUS } from "src/constants/schema.enum";
 import { InitListTokensDto, LoginDto, RegisterDto, SendOTPDto } from "./dto";
 import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
 
@@ -38,6 +38,7 @@ export class AuthService {
         const isCorrectPassword = await compare(loginDto.password, user.password);
         if (!isCorrectPassword) throw new HttpException("Incorrect Password", HttpStatus.BAD_REQUEST);
 
+        if (user.status === USER_STATUS.Locked) throw new ForbiddenException("Your account has been locked!");
         const tokens: Tokens = await this.getTokens(user._id, user.role);
         // Login Done => Create List Tokens 
         await this.initListTokens({ user: user._id, token: tokens.refreshToken });

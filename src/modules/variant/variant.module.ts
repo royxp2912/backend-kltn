@@ -4,7 +4,7 @@ import { VariantService } from './variant.service';
 import { VariantController } from './variant.controller';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { Product, ProductSchema } from 'src/schemas/product.schema';
-import { Variant, VariantSchema } from 'src/schemas/vriant.schema';
+import { Variant, VariantSchema } from 'src/schemas/variant.schema';
 import { DetailVariant, DetailVariantSchema } from 'src/schemas/detailVariant.schema';
 
 @Module({

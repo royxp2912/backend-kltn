@@ -28,6 +28,8 @@ export class GoodReceiptService {
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% GOOD RECEIPT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     // ======================================== POST =======================================
     async createGoodReceipt(createGoodReceiptDto: CreateGoodReceiptDto) {
+        console.log("createGoodReceiptDto: ", createGoodReceiptDto);
+
         const { details, ...others } = createGoodReceiptDto;
 
         await this.getSupplierById(others.supplier);
