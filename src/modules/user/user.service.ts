@@ -136,16 +136,18 @@ export class UserService {
 
     async getAll(getAllDto: GetAllDto): Promise<GetAllRes> {
         const pageSize = getAllDto.pageSize || 1;
-        const pageNumber = getAllDto.pageSize || 1;
+        const pageNumber = getAllDto.pageNumber || 1;
+
         const found = await this.userModel.find()
             .sort({ createdAt: -1 })
-            .limit(pageSize)
-            .skip(pageSize * (pageNumber - 1))
             .select('-__v -createdAt -updatedAt');
         const pages: number = Math.ceil(found.length / pageSize);
+
+        const semiFinal = found.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+
         const result: GetAllRes = {
             pages: pages,
-            data: found,
+            data: semiFinal,
         }
         return result;
     }
