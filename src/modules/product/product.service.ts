@@ -253,7 +253,7 @@ export class ProductService {
     async fillInfoOneProduct(proId: Types.ObjectId, userId: Types.ObjectId) {
         const found = await this.productModel.findById(proId)
             .populate({ path: 'category', select: 'name' })
-            .select("-__v -createdAt -updatedAt -status")
+            .select("-__v -createdAt -updatedAt")
             .lean();
         const urlImg = await this.variantService.getOneImageOfProduct(proId);
         const avaiQuantity = await this.variantService.getAvailableQuantityOfProduct(proId);
