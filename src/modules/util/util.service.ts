@@ -4,15 +4,21 @@ import { InjectModel } from '@nestjs/mongoose';
 import { UtilWard } from 'src/schemas/utilWard.schema';
 import { UtilDistrict } from 'src/schemas/utilDistrict.schema';
 import { UtilProvince } from 'src/schemas/utilProvince.schema';
-import { CreateDistrictDto, CreateProvinceDto, CreateWardDto, UpdateDistrictDto } from './dto';
+import { CreateBankDto, CreateDistrictDto, CreateProvinceDto, CreateWardDto, UpdateDistrictDto } from './dto';
+import { UtilBank } from 'src/schemas/utilBank.schema';
 
 @Injectable()
 export class UtilService {
     constructor(
         @InjectModel(UtilWard.name) private readonly utilWardModel: Model<UtilWard>,
+        @InjectModel(UtilBank.name) private readonly utilBankModel: Model<UtilBank>,
         @InjectModel(UtilDistrict.name) private readonly utilDistrictModel: Model<UtilDistrict>,
         @InjectModel(UtilProvince.name) private readonly utilProvincewModel: Model<UtilProvince>,
     ) { }
+
+    async getBanks() {
+        return await this.utilBankModel.find({}).select("bank_name");
+    }
 
     async getProvinces() {
         return await this.utilProvincewModel.find({}).select("-_id -__v -createdAt -updatedAt");
@@ -31,6 +37,17 @@ export class UtilService {
             { districtId: updateDistrictDto.districtId },
             { $set: { district_name: updateDistrictDto.district_name, district_type: updateDistrictDto.district_type } }
         );
+    }
+
+    async createBankList(createBankListDto: CreateBankDto[]) {
+        for (const item of createBankListDto) {
+            await this.createBank(item);
+        }
+    }
+
+    async createBank(createBankDto: CreateBankDto) {
+        const newBank = new this.utilBankModel(createBankDto);
+        await newBank.save();
     }
 
     // async createProvinceList(createProvinceListDto: CreateProvinceDto[]) {

@@ -1,10 +1,16 @@
 import { UtilService } from './util.service';
 import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
-import { CreateDistrictDto, CreateProvinceDto, CreateWardDto, UpdateDistrictDto } from './dto';
+import { CreateBankDto, CreateDistrictDto, CreateProvinceDto, CreateWardDto, UpdateDistrictDto } from './dto';
 
 @Controller('utils')
 export class UtilController {
     constructor(private readonly utilService: UtilService) { }
+
+    @Get("banks")
+    async getBanks() {
+        const result = await this.utilService.getBanks();
+        return { message: "Get Banks succeed.", result }
+    }
 
     @Get("provinces")
     async getProvinces() {
@@ -28,6 +34,12 @@ export class UtilController {
     async updateDistrict(@Body() updateDistrictDto: UpdateDistrictDto) {
         const result = await this.utilService.updateDistrist(updateDistrictDto);
         return { message: "Get Provinces succeed.", result }
+    }
+
+    @Post("banks")
+    async createBankList(@Body() createBankListDto: CreateBankDto[]) {
+        await this.utilService.createBankList(createBankListDto);
+        return { mewssage: "Create Bank List succeed." }
     }
 
     // @Post("provinces")
