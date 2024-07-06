@@ -1,11 +1,13 @@
 import { StartEndOfMonth } from './dateUtils';
 import { RevenueService } from './revenue.service';
-import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Query, Req, UseInterceptors } from '@nestjs/common';
 import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
 import {
     DetailMonthDto, DetailYearDto, DetailYearEachBrandDto, DetailYearEachCategoryDto, PaginationInventoryDto, RevenueMonthDto
 } from './dto';
 import { Types } from 'mongoose';
+import { getPayloadOfToken } from 'src/utils/jwt/decode.jwt';
+import { Payload } from '../product/types/Payload.type';
 
 @Controller('revenue')
 @UseInterceptors(TransformResponseInterceptor)
@@ -20,8 +22,15 @@ export class RevenueController {
     } // inventory
 
     @Get("products/hot")
-    async hotProductsMonthAgo() {
-        const result = await this.revenueService.hotProductMonthAgo();
+    async hotProductsMonthAgo(@Req() req) {
+        const refreshToken = req.cookies["refreshToken"];
+        let userId = null;
+        if (refreshToken) {
+            const payload = getPayloadOfToken(refreshToken) as Payload;
+            userId = payload.userId;
+        }
+
+        const result = await this.revenueService.hotProductMonthAgo(userId);
         return { message: "Get Hot Products succeed.", result, total: result.length }
     }
 

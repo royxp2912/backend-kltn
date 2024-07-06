@@ -173,7 +173,7 @@ export class RevenueService {
     }
 
     // ========================================= API =========================================
-    async hotProductMonthAgo() {
+    async hotProductMonthAgo(userId: Types.ObjectId) {
         const today = new Date();
         const time = StartEndOfMonthAgo(today.getDate(), today.getMonth(), today.getFullYear());
         const startDay = time.start;
@@ -181,7 +181,7 @@ export class RevenueService {
 
         const listSold = await this.listProductSoldOfTime(startDay, endDay);
         listSold.sort((a, b) => b.sold - a.sold);
-        const handleList = await Promise.all(listSold.map(item => this.productService.fillInfoOneProduct(item.product, null)));
+        const handleList = await Promise.all(listSold.map(item => this.productService.fillInfoOneProduct(item.product, userId)));
         if (handleList.length > 8) handleList.length = 8;
         return handleList;
     }
