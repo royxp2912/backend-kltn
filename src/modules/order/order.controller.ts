@@ -187,6 +187,15 @@ export class OrderController {
         const result = await this.orderService.getSoldOfProductInMonthAgo(product);
 
         return { message: "test succeed.", result }
+    } convertUSDToVND
+
+    // USD to VND
+    @Get("convert/usd-vnd")
+    @UseInterceptors(TransformResponseInterceptor)
+    async converUSDToVND(@Query("amount") amount: number) {
+        const result = await this.orderService.convertUSDToVND(amount);
+
+        return { message: "convert succeed.", result }
     }
 
 }

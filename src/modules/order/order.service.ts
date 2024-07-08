@@ -20,12 +20,15 @@ import {
 } from './dto';
 import { CANCEL_ORDER_TYPE } from './constants';
 import { StartEndOfMonthAgo } from '../revenue/dateUtils';
+import { HttpService } from '@nestjs/axios';
+import { map } from 'rxjs/operators';
 
 @Injectable()
 export class OrderService {
     private vnpay: VNPay;
 
     constructor(
+        private readonly httpService: HttpService,
         private readonly cartService: CartService,
         private readonly couponService: CouponService,
         private readonly variantService: VariantService,
@@ -73,7 +76,7 @@ export class OrderService {
 
         // await this.notificationService.createNotification({ user: others.user, type: NOTI_TYPE.ORDER_SUCCEED, relation: savedOrder.orderId });
 
-        if (savedOrder.paymentMethod === ORDER_PAYMENT_METHOD.VNPAY) return this.generatePaymentUrl({ orderId: savedOrder.orderId, total: savedOrder.total });
+        if (savedOrder.paymentMethod === ORDER_PAYMENT_METHOD.VNPAY) return await this.generatePaymentUrl({ orderId: savedOrder.orderId, total: savedOrder.total });
 
         return ORDER_PAYMENT_METHOD.COD;
     }
@@ -260,11 +263,12 @@ export class OrderService {
     }
 
     // =============================================== VNPAY ===============================================
-    generatePaymentUrl(paymentUrlDto: PaymentUrlDto): string {
+    async generatePaymentUrl(paymentUrlDto: PaymentUrlDto): Promise<string> {
+        const amount = await this.convertUSDToVND(paymentUrlDto.total);
         const params = {
             vnp_TxnRef: paymentUrlDto.orderId,
             vnp_IpAddr: "1.1.1.1",
-            vnp_Amount: paymentUrlDto.total * 24 * 1000,
+            vnp_Amount: amount,
             vnp_OrderInfo: 'Payment for order ' + paymentUrlDto.orderId,
             vnp_OrderType: 'billpayment',
             vnp_ReturnUrl: process.env.VNP_RETURNURL,
@@ -343,6 +347,24 @@ export class OrderService {
         const quantitySold = soldList.reduce((cur, acc) => acc + cur, 0);
 
         return quantitySold;
+    }
+
+    // change USD to VNĐ
+    async getExchangeRate(): Promise<number> {
+        const apiKey = 'abc20d3e3318388f8aac117f';
+        const url = `https://v6.exchangerate-api.com/v6/${apiKey}/latest/USD`;
+
+        const response = await this.httpService.get(url).pipe(
+            map(response => response.data)
+        ).toPromise();
+
+        return response.conversion_rates.VND;
+    }
+
+    async convertUSDToVND(amount: number): Promise<number> {
+        const rate = await this.getExchangeRate();
+        const result = amount * rate;
+        return Number(result.toFixed(0));
     }
 
     // Check hẹn giờ - hủy order chưa thanh toán online

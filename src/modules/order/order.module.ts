@@ -1,3 +1,4 @@
+import { HttpModule } from '@nestjs/axios';
 import { OrderService } from './order.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CartModule } from '../cart/cart.module';
@@ -18,8 +19,9 @@ import { DeliveryAddressModule } from '../delivery-address/delivery-address.modu
       { name: User.name, schema: UserSchema },
       { name: Order.name, schema: OrderSchema },
     ]),
-    CouponModule,
+    HttpModule,
     CartModule,
+    CouponModule,
     VariantModule,
     forwardRef(() => ProductModule),
     OrderAddressModule,
