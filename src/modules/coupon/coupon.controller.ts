@@ -4,6 +4,7 @@ import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe
 import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
 import { Body, Controller, Get, Param, Post, Put, Query, UseInterceptors } from '@nestjs/common';
 import {
+    AddCouponTopUserDto,
     CreateCouponDto, PaginationDto, PaginationUserDto, PaginationUserStatusDto,
     PaginationUserValidDto, UpdateCouponDto
 } from './dto';
@@ -18,6 +19,12 @@ export class CouponController {
     async create(@Body() createCouponDto: CreateCouponDto) {
         await this.couponService.create(createCouponDto);
         return { message: "Create Coupon succeed." }
+    }
+
+    @Post("add/top-user")
+    async addToTopUser(@Body() addTopUserDto: AddCouponTopUserDto) {
+        await this.couponService.addCouponToTopUser(addTopUserDto);
+        return { message: "Add Coupon to top user succeed." }
     }
 
     // ================================================ READ ================================================

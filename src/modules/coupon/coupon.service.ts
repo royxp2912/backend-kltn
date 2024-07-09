@@ -1,24 +1,72 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, Document } from 'mongoose';
 import { Coupon } from 'src/schemas/coupon.schema';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PaginationRes, PaginationResUser } from './types';
 import { UserCoupon } from 'src/schemas/userCoupon.schema';
-import { BadRequestException, Injectable, NotFoundException, Type } from '@nestjs/common';
+import { COUPON_STATUS, USER_COUPON_STATUS } from 'src/constants/schema.enum';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import {
+    AddCouponTopUserDto,
     CreateCouponDto, HandleResponseGetAllDto, HandleResponseGetListByUserDto, PaginationDto,
     PaginationUserDto, PaginationUserStatusDto, PaginationUserValidDto, UpdateCouponDto
 } from './dto';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { COUPON_STATUS, USER_COUPON_STATUS } from 'src/constants/schema.enum';
+import { User } from 'src/schemas/user.schema';
 
 @Injectable()
 export class CouponService {
 
     constructor(
         // private readonly cartsService: CartsService,
+        @InjectModel(User.name) private readonly userModel: Model<User>,
         @InjectModel(Coupon.name) private readonly couponModel: Model<Coupon>,
         @InjectModel(UserCoupon.name) private readonly userCouponModel: Model<UserCoupon>,
     ) { }
+
+    // =============================================== SPECIAL ===============================================
+    async addCouponToTopUser(addCouponTopUserDto: AddCouponTopUserDto) {
+        await this.addCouponToTop1(addCouponTopUserDto.first);
+        await this.addCouponToTop2(addCouponTopUserDto.second);
+        await this.addCouponToTop3(addCouponTopUserDto.third);
+    }
+
+    async addCouponToTop1(userId?: Types.ObjectId) {
+        if (!(await this.checkUserExist(userId))) return;
+
+        const detailCounponTop1 = await this.couponModel.findOne({ code: "TOP1USER" });
+        const startDate = new Date();
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + detailCounponTop1.validityDuration);
+        const newUserCoupon = new this.userCouponModel({ user: userId, coupon: detailCounponTop1._id, startDate, endDate });
+        await newUserCoupon.save();
+    }
+
+    async addCouponToTop2(userId?: Types.ObjectId) {
+        if (!(await this.checkUserExist(userId))) return;
+        const detailCounponTop1 = await this.couponModel.findOne({ code: "TOP2USER" });
+        const startDate = new Date();
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + detailCounponTop1.validityDuration);
+        const newUserCoupon = new this.userCouponModel({ user: userId, coupon: detailCounponTop1._id, startDate, endDate });
+        await newUserCoupon.save();
+    }
+
+    async addCouponToTop3(userId?: Types.ObjectId) {
+        if (!(await this.checkUserExist(userId))) return;
+        const detailCounponTop1 = await this.couponModel.findOne({ code: "TOP3USER" });
+        const startDate = new Date();
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + detailCounponTop1.validityDuration);
+        const newUserCoupon = new this.userCouponModel({ user: userId, coupon: detailCounponTop1._id, startDate, endDate });
+        await newUserCoupon.save();
+    }
+
+    async checkUserExist(userId?: Types.ObjectId) {
+        if (!userId) return false;
+        const found = await this.userModel.findById(userId);
+        if (!found) throw new NotFoundException("User not found.");
+        return true;
+    }
 
     // =============================================== CREATE ===============================================
     async create(createCouponDto: CreateCouponDto) {
@@ -148,13 +196,13 @@ export class CouponService {
     }
 
     async getCouponReview() {
-        const result = await this.couponModel.findOne({ code: "COUPONREVIEW1" });
+        const result = await this.couponModel.findOne({ code: "REVIEW01" });
         if (!result) throw new NotFoundException("Coupon not found.");
         return result;
     }
 
     async getCouponReviewPrime() {
-        const result = await this.couponModel.findOne({ code: "COUPONREVIEW2" });
+        const result = await this.couponModel.findOne({ code: "REVIEWVIP1" });
         if (!result) throw new NotFoundException("Coupon not found.");
         return result;
     }

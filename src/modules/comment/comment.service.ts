@@ -68,6 +68,13 @@ export class CommentService {
         return result;
     }
 
+    async getTotalReviewOfProduct(proId: Types.ObjectId) {
+        await this.checkProductExist(proId);
+
+        const found = await this.commentModel.find({ product: proId })
+        return found.length;
+    }
+
     async checkCommentExist(userId: Types.ObjectId, proId: Types.ObjectId): Promise<void> {
         const found = await this.commentModel.findOne({ commentator: userId, product: proId });
         if (found) throw new ConflictException("User have commented on this product.");

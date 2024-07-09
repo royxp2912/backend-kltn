@@ -257,10 +257,11 @@ export class ProductService {
             .lean();
         const urlImg = await this.variantService.getOneImageOfProduct(proId);
         const avaiQuantity = await this.variantService.getAvailableQuantityOfProduct(proId);
+        const totalReview = await this.commentService.getTotalReviewOfProduct(proId);
         let isFavorite = false;
         if (userId) isFavorite = await this.favoriteService.checkProductIsFavorite(userId, proId);
 
-        return { ...found, image: urlImg, available: avaiQuantity, isFavorite };
+        return { ...found, image: urlImg, available: avaiQuantity, isFavorite, totalReview };
     }
 
     // async fillInfoListProductsByIds(listIds: (Types.ObjectId)[]) {
