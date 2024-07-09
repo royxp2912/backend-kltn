@@ -1,12 +1,16 @@
 import { Model, Types } from "mongoose";
 import { InjectModel } from "@nestjs/mongoose";
 import { CreateCateDto, UpdateCateDto } from "./dto";
+import { Product } from "src/schemas/product.schema";
 import { Category } from "src/schemas/category.schema";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class CategoryService {
-    constructor(@InjectModel(Category.name) private readonly categoryModel: Model<Category>) { }
+    constructor(
+        @InjectModel(Product.name) private readonly productModel: Model<Product>,
+        @InjectModel(Category.name) private readonly categoryModel: Model<Category>
+    ) { }
 
     async createCategory(createCateDto: CreateCateDto): Promise<void> {
         const newCate = new this.categoryModel(createCateDto);
@@ -37,6 +41,17 @@ export class CategoryService {
     }
 
     async getAll(): Promise<Category[]> {
-        return await this.categoryModel.find().select("-__v -createdAt -updatedAt");
+        const found = await this.categoryModel.find().select("-__v -createdAt -updatedAt");
+        const result = [];
+        for (const cate of found) {
+            const total = await (await this.productModel.find({ category: cate._id })).length;
+            result.push({
+                "_id": cate._id,
+                "name": cate.name,
+                "img": cate.img,
+                "total": total,
+            })
+        }
+        return result;
     }
 }

@@ -25,13 +25,14 @@ import { UtilModule } from './modules/util/util.module';
   imports: [
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGO_ONL')
-      })
-    }),
+    MongooseModule.forRoot('mongodb://localhost/kltn'),
+    // MongooseModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   useFactory: async (configService: ConfigService) => ({
+    //     uri: configService.get<string>('MONGO_ONL')
+    //   })
+    // }),
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
