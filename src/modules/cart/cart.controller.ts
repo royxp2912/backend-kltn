@@ -3,8 +3,9 @@ import { CartService } from './cart.service';
 import { AddToCartDto } from './dto/AddToCart.dto';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
 import { AddWithoutVariantDto, RemoveFromCartDto, UpdateVariantCartDto } from './dto';
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('carts')
 @UseInterceptors(TransformResponseInterceptor)
@@ -36,6 +37,7 @@ export class CartController {
     }
 
     // GET ================================================
+    @UseGuards(AuthGuard('jwt'))
     @Get("user/:userId")
     async getById(@Param('userId', new ValidateObjectIdPipe()) userId: Types.ObjectId) {
         const result = await this.cartService.getByUser(userId);
