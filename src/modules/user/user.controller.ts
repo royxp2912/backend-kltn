@@ -4,7 +4,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { CloudinaryService } from "../cloudinary/cloudinary.service";
 import { ValidateObjectIdPipe } from "src/utils/customPipe/validateObjectId.pipe";
 import { TransformResponseInterceptor } from "src/utils/interceptors/response.interceptor";
-import { FindByKeywordDto, GetAllDto, GetByEmailDto, GetByStatusDto, UpdateEmailDto, UpdatePasswordDto, UpdateUserDto } from "./dto";
+import { FindByKeywordDto, ForgotPasswordDto, GetAllDto, GetByEmailDto, GetByStatusDto, UpdateEmailDto, UpdatePasswordDto, UpdateUserDto } from "./dto";
 import {
     Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, Patch, Query, UploadedFile, UseInterceptors
 } from "@nestjs/common";
@@ -28,6 +28,12 @@ export class UserController {
     async updatePassword(@Body() updatePasswordDto: UpdatePasswordDto) {
         await this.userService.updatePassword(updatePasswordDto);
         return { message: "Update Password Succeed" }
+    }
+
+    @Patch("forgot-password")
+    async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+        await this.userService.forgotPassword(forgotPasswordDto);
+        return { message: "Password recovery Succeed" }
     }
 
     @Patch("upload-avatar")

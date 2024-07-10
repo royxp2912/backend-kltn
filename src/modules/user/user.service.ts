@@ -4,7 +4,7 @@ import { Model, Types } from "mongoose";
 import { USER_ROLES, USER_STATUS } from "src/constants/schema.enum";
 import { User } from "src/schemas/user.schema";
 import { compare, encode } from "src/utils/bcrypt/bcrypt";
-import { GetByEmailDto, GetByStatusDto, UpdateUserDto, GetAllDto, UpdatePasswordDto, UpdateEmailDto, FindByKeywordDto } from "./dto";
+import { GetByEmailDto, GetByStatusDto, UpdateUserDto, GetAllDto, UpdatePasswordDto, UpdateEmailDto, FindByKeywordDto, ForgotPasswordDto } from "./dto";
 import { GetAllRes } from "./types";
 
 @Injectable()
@@ -71,6 +71,15 @@ export class UserService {
         if (found.status === USER_STATUS.Locked) throw new ConflictException("User is already active.");
 
         found.status = USER_STATUS.Active;
+        await found.save();
+    }
+
+    async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<void> {
+        const found = await this.userModel.findOne({ email: forgotPasswordDto.email });
+        if (!found) throw new NotFoundException("User Not Found");
+
+        const newPass = await encode(forgotPasswordDto.newPassword);
+        found.password = newPass;
         await found.save();
     }
 

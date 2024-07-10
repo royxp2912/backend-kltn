@@ -5,3 +5,4 @@ export * from './UpdateEmail.dto';
 export * from './GetByStatus.dto';
 export * from './UpdatePassword.dto';
 export * from './FindByKeyword.dto';
+export * from './ForgotPassword.dto';
