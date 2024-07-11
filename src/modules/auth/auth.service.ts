@@ -117,6 +117,11 @@ export class AuthService {
         return lastest.value;
     }
 
+    async validateRefreshToken(userId: Types.ObjectId, refreshToken: string) {
+        const refreshTokenLasted = await this.getTokenLastest(userId);
+        if (refreshTokenLasted !== refreshToken) throw new ForbiddenException('RefreshToken Invalid.');
+    }
+
     async initListTokens(initListTokensDto: InitListTokensDto): Promise<Auth> {
         const isLogged = await this.authModel.findOne({ user: initListTokensDto.user });
         if (isLogged) throw new BadRequestException("User has been logged in");

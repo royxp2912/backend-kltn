@@ -2,9 +2,9 @@ import { Types } from 'mongoose';
 import { CommentService } from './comment.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { CreateCommentDto, PaginationProductDto, UpdateCommentDto } from './dto';
+import { CheckPurchasedDto, CreateCommentDto, PaginationProductDto, UpdateCommentDto } from './dto';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Query, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
 
 @Controller('comments')
@@ -35,6 +35,14 @@ export class CommentController {
     async getByProduct(@Query() paginationProductDto: PaginationProductDto) {
         const result = await this.commentService.getByProduct(paginationProductDto);
         return { message: "Create Comment succeed.", result: result.data, pages: result.pages, total: result.total }
+    }
+
+    @Get("check/purchased")
+    async checkPurchased(@Query() checkPurchasedDto: CheckPurchasedDto) {
+        const { commentator, product } = checkPurchasedDto;;
+        const result = await this.commentService.checkedUserPurchasedProduct(commentator, product);
+        if (!result) throw new BadRequestException("Need to purchase the product to be able to rate the product.");
+        return { message: "Check succeed." }
     }
 
     // UPDATE ===============================================

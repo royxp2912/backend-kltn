@@ -154,6 +154,7 @@ export class CommentService {
         const found = await this.orderModel.findOne({
             user: userId,
             "items.product": proId,
+            status: { $in: [ORDER_STATUS.Successful, ORDER_STATUS.DeliveredSuccessfully] }
         });
         if (!found) return false;
         return found;

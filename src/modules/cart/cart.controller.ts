@@ -37,7 +37,7 @@ export class CartController {
     }
 
     // GET ================================================
-    @UseGuards(AuthGuard('jwt'))
+    // @UseGuards(AuthGuard('jwt'))
     @Get("user/:userId")
     async getById(@Param('userId', new ValidateObjectIdPipe()) userId: Types.ObjectId) {
         const result = await this.cartService.getByUser(userId);
