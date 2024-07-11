@@ -29,6 +29,29 @@ export class AuthService {
         await this.cartService.create(result._id);
     }
 
+    async loginAdmin(loginDto: LoginDto): Promise<LoginResponse | undefined> {
+        const user = await this.userModel.findOne({ email: loginDto.email })
+            .select("-__v -createdAt -updatedAt");
+
+        if (!user) throw new HttpException("Invalid Email", HttpStatus.NOT_FOUND);
+        if (user.role !== USER_ROLES.Admin) throw new BadRequestException("You are not an administrator.");
+
+        const isCorrectPassword = await compare(loginDto.password, user.password);
+        if (!isCorrectPassword) throw new HttpException("Incorrect Password", HttpStatus.BAD_REQUEST);
+
+        if (user.status === USER_STATUS.Locked) throw new ForbiddenException("Your account has been locked!");
+        const tokens: Tokens = await this.getTokens(user._id, user.role);
+        // Login Done => Create List Tokens 
+        await this.initListTokens({ user: user._id, token: tokens.refreshToken });
+        const { password, role, status, ...others } = user.toObject();
+
+        const result: LoginResponse = {
+            user: others,
+            tokens,
+        }
+        return result;
+    }
+
     async login(loginDto: LoginDto): Promise<LoginResponse | undefined> {
         const user = await this.userModel.findOne({ email: loginDto.email })
             .select("-__v -createdAt -updatedAt");

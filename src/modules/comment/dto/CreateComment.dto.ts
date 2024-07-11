@@ -12,9 +12,9 @@ export class CreateCommentDto {
     @IsNotEmpty()
     product: Types.ObjectId;
 
-    @IsString()
-    @IsNotEmpty()
-    order: string;
+    // @IsString()
+    // @IsNotEmpty()
+    // order: string;
 
     @IsNumber()
     @IsNotEmpty()

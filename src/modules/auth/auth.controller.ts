@@ -29,6 +29,20 @@ export class AuthController {
         }
     }
 
+    @Post('admin/login')
+    async loginAdmin(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res) {
+        const result = await this.authService.loginAdmin(loginDto);
+
+        res.cookie('refreshToken', result.tokens.refreshToken, { httpOnly: true });
+        return {
+            message: "Login Successful!",
+            result: {
+                user: result.user,
+                token: result.tokens.accessToken,
+            }
+        }
+    }
+
     @Post('sendOTP')
     async sendOTP(@Body() sendOTPDto: SendOTPDto) {
         const OTP = await this.authService.sendOTP(sendOTPDto);

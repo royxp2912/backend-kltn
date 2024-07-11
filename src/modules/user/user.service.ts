@@ -68,7 +68,7 @@ export class UserService {
     async unLock(userId: Types.ObjectId): Promise<void> {
         const found = await this.userModel.findById(userId);
         if (!found) throw new NotFoundException("User Not Found");
-        if (found.status === USER_STATUS.Locked) throw new ConflictException("User is already active.");
+        if (found.status !== USER_STATUS.Locked) throw new ConflictException("User is already active.");
 
         found.status = USER_STATUS.Active;
         await found.save();
