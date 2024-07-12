@@ -281,7 +281,7 @@ export class VariantService {
         const result = await this.variantModel.findOneAndUpdate(
             { product: product, color: color }
             , { $set: { image: image } });
-        if (!result) throw new NotFoundException("Product not found");
+        if (!result) await this.createVariant({ product, color, image });
     }
 
     // READ =====================================================

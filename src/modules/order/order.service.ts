@@ -48,6 +48,8 @@ export class OrderService {
 
     // CREATE ===============================================
     async create(createOrderDto: CreateOrderDto): Promise<string> {
+        console.log("createOrderDto: ", createOrderDto);
+
         const { coupon, ...others } = createOrderDto;
         const isStock = await createOrderDto.items.reduce(async (acc, cur) => {
             const checked = await this.variantService.checkedStockVariant(

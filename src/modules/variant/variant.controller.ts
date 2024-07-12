@@ -41,9 +41,11 @@ export class VariantController {
     async update(
         @UploadedFile() image: Express.Multer.File,
         @Body() updateListVariantDto: UpdateListVariantDto,) {
+        console.log("updateListVariantDto: ", updateListVariantDto);
+
         if (image) {
             const found = await this.variantService.getVarByInfo(updateListVariantDto.product, updateListVariantDto.color);
-            await this.cloudinaryService.deleteImageOnCloud(found.image);
+            if (found) await this.cloudinaryService.deleteImageOnCloud(found.image);
             updateListVariantDto.image = await (await this.cloudinaryService.uploadFile(image)).url;
         }
 
