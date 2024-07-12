@@ -14,6 +14,7 @@ export class CartController {
         private readonly cartService: CartService,) { }
 
     // POST ===============================================
+    // @UseGuards(AuthGuard('jwt'))
     @Post("addToCart")
     async addToCart(@Body() addToCartDto: AddToCartDto) {
         await this.cartService.addToCart(addToCartDto);
@@ -37,7 +38,7 @@ export class CartController {
     }
 
     // GET ================================================
-    // @UseGuards(AuthGuard('jwt'))
+    @UseGuards(AuthGuard('jwt'))
     @Get("user/:userId")
     async getById(@Param('userId', new ValidateObjectIdPipe()) userId: Types.ObjectId) {
         const result = await this.cartService.getByUser(userId);

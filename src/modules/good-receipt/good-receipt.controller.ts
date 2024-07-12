@@ -4,7 +4,8 @@ import { CreateGoodReceiptDto } from './dto/CreateGoodReceipt.dto';
 import { CreateSupplierDto, PaginationAllDto, UpdateSupplierDto } from './dto';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
 import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
-import { Body, Controller, Get, Param, Post, Put, UseInterceptors, Query, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, UseInterceptors, Query, Delete, Patch, UseGuards, Req } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('good-receipts')
 @UseInterceptors(TransformResponseInterceptor)
@@ -30,6 +31,15 @@ export class GoodReceiptController {
         await this.goodReceiptService.updateSupplier(updateSupplierDto);
         return { message: "Update Supplier succeed." }
     }     // == SUPPLIER
+
+    @UseGuards(AuthGuard('admin-jwt'))
+    @Patch("receipts/:receiptId")
+    async updateReceiptToWarehouse(@Req() req, @Param('receiptId', new ValidateObjectIdPipe()) receiptId: Types.ObjectId) {
+        console.log("req: ", req);
+
+        await this.goodReceiptService.updateReceiptToWarehouse(receiptId, req.user.userId);
+        return { message: "Update Supplier succeed." }
+    }
 
     // ======================================== GET ========================================
     @Get("receipts")

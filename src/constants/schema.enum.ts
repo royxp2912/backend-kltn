@@ -40,6 +40,11 @@ export enum PRODUCT_STATUS {
     Locked = 'Locked',
 }
 
+export enum RECEIPT_STATUS {
+    UPDATED = 'UPDATED',
+    CONFIRMED = 'CONFIRMED',
+}
+
 export enum VARIANT_COLOR {
     Red = 'Red',
     Blue = 'Blue',

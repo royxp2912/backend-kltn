@@ -53,7 +53,7 @@ export class AuthController {
     @UseGuards(AuthGuard('jwt-refresh'))
     @Post('refresh')
     async refresh(@Req() req, @Res({ passthrough: true }) res) {
-        const result = await this.authService.refresh(req.user.userId, req.user.email, req.user.refreshToken);
+        const result = await this.authService.refresh(req.user.userId, req.user.role, req.user.refreshToken);
 
         res.cookie('refreshToken', result.refreshToken, { httpOnly: true });
         return { message: "Refresh Token succeed", result: result.accessToken };

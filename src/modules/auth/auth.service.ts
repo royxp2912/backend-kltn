@@ -103,15 +103,14 @@ export class AuthService {
         if (token !== lastestToken) throw new ForbiddenException("Refresh Token is not valid");
 
         const newTokens = await this.getTokens(userId, role);
+        console.log(newTokens);
+
         await this.addNewToken(userId, newTokens.refreshToken);
         return newTokens;
     }
 
     async getTokens(userId: Types.ObjectId, role: USER_ROLES): Promise<Tokens> {
-        const jwtPayload: JwtPayload = {
-            userId,
-            role,
-        };
+        const jwtPayload: JwtPayload = { userId, role };
 
         const [at, rt] = await Promise.all([
             this.jwtService.signAsync(jwtPayload, {

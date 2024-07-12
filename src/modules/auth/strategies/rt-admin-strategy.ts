@@ -1,11 +1,12 @@
 import { Request } from 'express';
+import { AuthService } from '../auth.service';
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy, ExtractJwt } from 'passport-jwt';
-import { ForbiddenException, Injectable } from "@nestjs/common";
-import { AuthService } from '../auth.service';
+import { USER_ROLES } from 'src/constants/schema.enum';
+import { ForbiddenException, Injectable, Req } from "@nestjs/common";
 
 @Injectable()
-export class RtStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
+export class RtAdminStrategy extends PassportStrategy(Strategy, 'admin-jwt-refresh') {
     constructor(private readonly authService: AuthService) {
         super({
             jwtFromRequest: ExtractJwt.fromExtractors([
@@ -17,16 +18,14 @@ export class RtStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
     }
 
     async validate(req: Request, payload: any) {
+        if (payload.role !== USER_ROLES.Admin) throw new ForbiddenException("You do not have access to this resource.");
+
         const refreshToken: string = req.cookies['refreshToken'];
 
         if (!refreshToken) throw new ForbiddenException('Refresh token malformed');
 
         await this.authService.validateRefreshToken(payload.userId, refreshToken);
-        console.log("payload: ", payload);
 
-        return {
-            ...payload,
-            refreshToken
-        };
+        return { ...payload, refreshToken };
     }
 }

@@ -6,8 +6,9 @@ import { ValidateObjectIdPipe } from "src/utils/customPipe/validateObjectId.pipe
 import { TransformResponseInterceptor } from "src/utils/interceptors/response.interceptor";
 import { FindByKeywordDto, ForgotPasswordDto, GetAllDto, GetByEmailDto, GetByStatusDto, UpdateEmailDto, UpdatePasswordDto, UpdateUserDto } from "./dto";
 import {
-    Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, Patch, Query, UploadedFile, UseInterceptors
+    Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, Patch, Query, UploadedFile, UseGuards, UseInterceptors
 } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
 
 @Controller('users')
 @UseInterceptors(TransformResponseInterceptor)
@@ -117,14 +118,11 @@ export class UserController {
         }
     }
 
-    @Get("")
+    @UseGuards(AuthGuard('admin-jwt'))
+    @Get()
     async getAll(@Query() getAllDto: GetAllDto) {
         const result = await this.userService.getAll(getAllDto);
-        return {
-            message: "Get All User Succeed",
-            result: result.data,
-            pages: result.pages
-        }
+        return { message: "Get All User Succeed", result: result.data, pages: result.pages }
     }
 
     // DELETE ========================================

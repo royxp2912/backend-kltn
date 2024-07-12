@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/schemas/user.schema';
 import { Model, Types, Document } from 'mongoose';
 import { Supplier } from 'src/schemas/supplier.schema';
-import { USER_ROLES } from 'src/constants/schema.enum';
+import { RECEIPT_STATUS, USER_ROLES } from 'src/constants/schema.enum';
 import { GoodReceipt } from 'src/schemas/goodReceipt.schema';
 import { CreateGoodReceiptDto } from './dto/CreateGoodReceipt.dto';
 import { DetailGoodReceipt } from 'src/schemas/detailGoodReceipt.schema';
@@ -45,6 +45,14 @@ export class GoodReceiptService {
     } // POST
 
     // ======================================== PUT ========================================
+    async updateReceiptToWarehouse(receiptId: Types.ObjectId, updater: Types.ObjectId) {
+        const update_date: Date = new Date();
+        const result = await this.goodReceiptModel.findByIdAndUpdate(
+            receiptId, { status: RECEIPT_STATUS.UPDATED, updater, update_date, }
+        );
+        if (!result) throw new NotFoundException("Receipt not found.");
+    }
+
     // ======================================== GET ========================================
     async getDetailGoodReceiptById(receiptId: string): Promise<DetailReceipt> {
         const foundReceipt = await this.goodReceiptModel.findOne({ receiptId: receiptId }).select("-createdAt -updatedAt -__v");

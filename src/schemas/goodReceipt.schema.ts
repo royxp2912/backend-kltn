@@ -1,5 +1,6 @@
 import { SchemaTypes, Types } from "mongoose";
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
+import { RECEIPT_STATUS } from "src/constants/schema.enum";
 
 @Schema({ collection: 'good_receipts', timestamps: true })
 export class GoodReceipt {
@@ -16,10 +17,19 @@ export class GoodReceipt {
     confirmation_date: Date;
 
     @Prop({ required: true })
+    update_date: Date;
+
+    @Prop({ required: true })
     total: number;
 
     @Prop({ required: false })
     notes: string;
+
+    @Prop({ type: String, enum: RECEIPT_STATUS, default: RECEIPT_STATUS.CONFIRMED })
+    status: RECEIPT_STATUS;
+
+    @Prop({ type: SchemaTypes.ObjectId, ref: 'User', required: false })
+    updater: Types.ObjectId;
 }
 
 export const GoodReceiptSchema = SchemaFactory.createForClass(GoodReceipt);
