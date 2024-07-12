@@ -8,13 +8,15 @@ import { CreateImageVariantDto } from './dto/CreateImageVariant.dto';
 import { VARIANT_COLOR, VARIANT_HEX } from 'src/constants/schema.enum';
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import {
-    CreateDetailVariantDto, CreateListVariantDto, DetailVariantDto, GetVariantByInfoDto,
+    CreateDetailVariantDto, CreateListVariantDto, DeleteColorDto, DetailVariantDto, GetVariantByInfoDto,
     IncreaseOrReduceDto, UpdateDetailVariantDto, UpdateImageVariantDto, UpdateListVariantDto, VariantDto,
 } from './dto';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class VariantService {
     constructor(
+        private readonly cloudinaryService: CloudinaryService,
         @InjectModel(Variant.name) private readonly variantModel: Model<Variant>,
         @InjectModel(Product.name) private readonly productModel: Model<Product>,
         @InjectModel(DetailVariant.name) private readonly detailVariantModel: Model<DetailVariant>,
@@ -316,6 +318,14 @@ export class VariantService {
     } // done
 
     // DELETE ==================================================
+    async deleteColorOfProduct(deleteColorDto: DeleteColorDto) {
+        const { product, color } = deleteColorDto;
+        const result = await this.variantModel.findOneAndDelete({ product, color });
+        if (result) {
+            await this.cloudinaryService.deleteImageOnCloud(result.image);
+            await this.detailVariantModel.deleteMany({ variant: result._id });
+        }
+    } // done
 
     // ============================================= SPECIAL =============================================
     async checkProductExist(proId: Types.ObjectId) {

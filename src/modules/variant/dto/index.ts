@@ -1,4 +1,5 @@
 export * from "./Variant.dto";
+export * from "./DeleteColor.dto";
 export * from "./DetailVariant.dto";
 export * from "./IncreaseOrReduce.dto";
 export * from "./GetVariantByInfo.dto";

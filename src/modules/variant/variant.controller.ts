@@ -6,7 +6,7 @@ import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe
 import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
 import {
-    CreateListVariantDto, GetByColorAProductDto, GetBySizeAProductDto, GetVariantByInfoDto, UpdateListVariantDto
+    CreateListVariantDto, DeleteColorDto, GetByColorAProductDto, GetBySizeAProductDto, GetVariantByInfoDto, UpdateListVariantDto
 } from './dto';
 
 @Controller('variants')
@@ -41,7 +41,6 @@ export class VariantController {
     async update(
         @UploadedFile() image: Express.Multer.File,
         @Body() updateListVariantDto: UpdateListVariantDto,) {
-        console.log("updateListVariantDto: ", updateListVariantDto);
 
         if (image) {
             const found = await this.variantService.getVarByInfo(updateListVariantDto.product, updateListVariantDto.color);
@@ -80,8 +79,8 @@ export class VariantController {
 
     @Get("find/by-product/:proId")
     async getListColorAndSize(@Param('proId', new ValidateObjectIdPipe()) proId: Types.ObjectId) {
-        // const result = await this.variantService.getListColorAndSize(proId);
-        // return { message: "Get List Variant succeed.", result }
+        const result = await this.variantService.getListColorAndSize(proId);
+        return { message: "Get List Variant succeed.", result }
     }
 
     // DELETE =============================================
@@ -89,6 +88,12 @@ export class VariantController {
     async deleteAll() {
         await this.variantService.deleteAll();
         return { message: "Delete Variant succeed." }
+    }
+
+    @Delete("color")
+    async deleteColorOfProduct(@Query() deleteColorDto: DeleteColorDto) {
+        await this.variantService.deleteColorOfProduct(deleteColorDto);
+        return { message: "Delete Color of Product succeed." }
     }
 
     // TEST API =============================================
