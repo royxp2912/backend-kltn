@@ -40,6 +40,11 @@ export enum PRODUCT_STATUS {
     Locked = 'Locked',
 }
 
+export enum RECEIPT_STATUS {
+    UPDATED = 'UPDATED',
+    CONFIRMED = 'CONFIRMED',
+}
+
 export enum VARIANT_COLOR {
     Red = 'Red',
     Blue = 'Blue',
@@ -98,6 +103,11 @@ export enum COUPON_STATUS {
     Locked = 'Locked'
 }
 
+export enum USER_COUPON_STATUS {
+    VALID = 'VALID',
+    EXPIRED = 'EXPIRED'
+}
+
 export enum NOTI_TYPE {
     OTHERS = 'OTHERS',
     COUPON_NEW = 'COUPON_NEW',
@@ -105,4 +115,24 @@ export enum NOTI_TYPE {
     ORDER_CANCELLED_BY_USER = 'ORDER_CANCELLED_BY_USER',
     ORDER_CANCELLED_BY_ADMIN = 'ORDER_CANCELLED_BY_ADMIN',
     ORDER_CANCELLED_DUE_TO_EXPIRATION = 'ORDER_CANCELLED_DUE_TO_EXPIRATION',
+}
+
+export enum SYNTAX_MONTH {
+    Jan,
+    Feb,
+    Mar,
+    Apr,
+    May,
+    June,
+    July,
+    Aug,
+    Sep,
+    Oct,
+    Nov,
+    Dec,
+}
+
+export enum BILLING_METHOD {
+    CASH = 'CASH',
+    TRANSFER = 'TRANSFER',
 }

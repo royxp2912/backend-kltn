@@ -4,7 +4,7 @@ import { PRODUCT_BRAND, PRODUCT_STATUS } from "src/constants/schema.enum";
 
 @Schema({ timestamps: true })
 export class Product {
-    @Prop({ required: true })
+    @Prop({ unique: true, required: true })
     name: string;
 
     // @Prop({ required: true })

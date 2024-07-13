@@ -25,8 +25,8 @@ export class User {
     @Prop({})
     phone: string;
 
-    @Prop({ default: 0 })
-    spent: number;
+    // @Prop({ default: 0 })
+    // spent: number;
 
     @Prop({ type: String, enum: USER_ROLES, default: USER_ROLES.User })
     role: USER_ROLES;

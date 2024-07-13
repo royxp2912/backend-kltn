@@ -1,7 +1,7 @@
 import { SchemaTypes, Types } from "mongoose";
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 
-@Schema({ timestamps: true })
+@Schema({ collection: 'delivery_addressess', timestamps: true })
 export class DeliveryAddress {
 
     @Prop({ type: SchemaTypes.ObjectId, ref: 'User', required: true })

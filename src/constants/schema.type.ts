@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { VARIANT_COLOR, VARIANT_HEX } from "./schema.enum";
+import { BILLING_METHOD, VARIANT_COLOR, VARIANT_HEX } from "./schema.enum";
 
 export type AuthListTokens = {
     value: string;
@@ -26,4 +26,15 @@ export type DetailProductInOrder = {
     size: string,
     quantity: number,
     price: number,
+}
+
+export type BillingInfomation = {
+    method: BILLING_METHOD;
+    bank?: string;
+    bank_account?: string;
+}
+
+export type ReceiptVariant = {
+    size: string;
+    quantity: number;
 }

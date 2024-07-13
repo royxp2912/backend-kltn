@@ -1,35 +1,38 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { AuthsModule } from './auths/auths.module';
-import { UsersModule } from './users/users.module';
-import { CartsModule } from './carts/carts.module';
-import { MailerModule } from '@nestjs-modules/mailer';
-import { OrdersModule } from './orders/orders.module';
-import { MulterModule } from '@nestjs/platform-express';
-import { CouponsModule } from './coupons/coupons.module';
-import { ProductsModule } from './products/products.module';
-import { VariantsModule } from './variants/variants.module';
-import { CommentsModule } from './comments/comments.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { FavoritesModule } from './favorites/favorites.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { RevenueModule } from './revenue/revenue.module';
-import { CategoriesModule } from './categories/categories.module';
-import { OrderAddressModule } from './orderaddress/orderaddress.module';
-import { NotificationsModule } from './notifications/notifications.module';
-import { DeliveryAddressModule } from './deliveryaddress/deliveryaddress.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { MulterModule } from '@nestjs/platform-express';
+import { AuthModule } from './modules/auth/auth.module';
+import { CartModule } from './modules/cart/cart.module';
+import { UserModule } from './modules/user/user.module';
+import { OrderModule } from './modules/order/order.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CouponModule } from './modules/coupon/coupon.module';
+import { VariantModule } from './modules/variant/variant.module';
+import { CommentModule } from './modules/comment/comment.module';
+import { RevenueModule } from './modules/revenue/revenue.module';
+import { ProductModule } from './modules/product/product.module';
+import { CategoryModule } from './modules/category/category.module';
+import { FavoriteModule } from './modules/favorite/favorite.module';
+import { GoodReceiptModule } from './modules/good-receipt/good-receipt.module';
+import { NotificationModule } from './modules/notification/notification.module';
+import { OrderAddressModule } from './modules/order-address/order-address.module';
+import { DeliveryAddressModule } from './modules/delivery-address/delivery-address.module';
+import { UtilModule } from './modules/util/util.module';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGO_ONL')
-      })
-    }),
+    MongooseModule.forRoot('mongodb://localhost/kltn'),
+    // MongooseModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   useFactory: async (configService: ConfigService) => ({
+    //     uri: configService.get<string>('MONGO_ONL')
+    //   })
+    // }),
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -47,20 +50,22 @@ import { DeliveryAddressModule } from './deliveryaddress/deliveryaddress.module'
     MulterModule.register({
       dest: './kltn',
     }),
-    AuthsModule,
-    UsersModule,
-    CartsModule,
-    OrdersModule,
-    CouponsModule,
-    ProductsModule,
-    VariantsModule,
-    CommentsModule,
-    FavoritesModule,
-    CategoriesModule,
-    OrderAddressModule,
-    DeliveryAddressModule,
-    NotificationsModule,
+    UtilModule,
+    AuthModule,
+    UserModule,
+    CartModule,
+    OrderModule,
+    CouponModule,
     RevenueModule,
+    ProductModule,
+    VariantModule,
+    CommentModule,
+    FavoriteModule,
+    CategoryModule,
+    OrderAddressModule,
+    NotificationModule,
+    GoodReceiptModule,
+    DeliveryAddressModule,
   ],
   controllers: [],
   providers: [],

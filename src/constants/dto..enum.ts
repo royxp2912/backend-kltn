@@ -1,4 +1,6 @@
 export enum SORT {
+    NEW = 'NEW',
+    HOT = 'HOT',
     pASC = 'pASC',
     rASC = 'rASC',
     pDESC = 'pDESC',
@@ -9,6 +11,11 @@ export enum TYPE_REVENUE {
     REDUCE = 'REDUCE',
     NOCHANGE = 'NOCHANGE',
     INCREASE = 'INCREASE',
+}
+
+export enum INVENTORY_SORT {
+    LOWSTOCK = 'LOWSTOCK',
+    HIGHSTOCK = 'HIGHSTOCK',
 }
 
 export enum DAY_WEEK {

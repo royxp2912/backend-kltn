@@ -1,7 +1,7 @@
 import { SchemaTypes, Types } from "mongoose";
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
 
-@Schema({ timestamps: true })
+@Schema({ collection: "user_coupons", timestamps: true })
 export class UserCoupon {
     @Prop({ type: SchemaTypes.ObjectId, required: true })
     user: Types.ObjectId;
