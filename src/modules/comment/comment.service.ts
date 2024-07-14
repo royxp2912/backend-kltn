@@ -41,7 +41,7 @@ export class CommentService {
         const newCmt = new this.commentModel(createCommentDto);
         await newCmt.save();
         await this.updateAvgRatingProduct(product);
-        if (!createCommentDto.images) {
+        if (!createCommentDto.content) {
             await this.couponService.createUserCouponReview(commentator);
         } else {
             await this.couponService.createUserCouponReviewPrime(commentator);

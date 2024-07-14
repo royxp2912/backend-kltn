@@ -98,6 +98,7 @@ export class OrderService {
         })
             .sort({ createdAt: -1 })
             .populate({ path: 'deliveryAddress', select: '-createdAt -updatedAt -__v' })
+            .populate({ path: 'user', select: 'fullName' })
             .select("-__v -createdAt -updatedAt");
 
         return this.handleResponseGetList({ listOrders: found, pageSize, pageNumber });
@@ -106,6 +107,7 @@ export class OrderService {
     async getById(orderId: Types.ObjectId) {
         const result = await this.orderModel.findById(orderId)
             .populate({ path: 'deliveryAddress', select: '-createdAt -updatedAt -__v' })
+            .populate({ path: 'user', select: 'fullName' })
             .select("-__v -createdAt -updatedAt");
 
         if (!result) throw new NotFoundException("Order not found.");
@@ -115,6 +117,7 @@ export class OrderService {
     async getByOrderId(orderId: string) {
         const result = await this.orderModel.findOne({ orderId: orderId })
             .populate({ path: 'deliveryAddress', select: '-createdAt -updatedAt -__v' })
+            .populate({ path: 'user', select: 'fullName' })
             .select("-__v -createdAt -updatedAt");
 
         if (!result) throw new NotFoundException("Order not found.");
@@ -133,6 +136,7 @@ export class OrderService {
         const found = await this.orderModel.find({ user, status })
             .sort({ createdAt: -1 })
             .populate({ path: 'deliveryAddress', select: '-createdAt -updatedAt -__v' })
+            .populate({ path: 'user', select: 'fullName' })
             .select("-__v -createdAt -updatedAt");
 
         return this.handleResponseGetList({ listOrders: found, pageSize, pageNumber });
@@ -149,6 +153,7 @@ export class OrderService {
         const found = await this.orderModel.find({ user })
             .sort({ createdAt: -1 })
             .populate({ path: 'deliveryAddress', select: '-createdAt -updatedAt -__v' })
+            .populate({ path: 'user', select: 'fullName' })
             .select("-__v -createdAt -updatedAt");
 
         return this.handleResponseGetList({ listOrders: found, pageSize, pageNumber });
@@ -161,6 +166,7 @@ export class OrderService {
         const found = await this.orderModel.find({ status })
             .sort({ createdAt: -1 })
             .populate({ path: 'deliveryAddress', select: '-createdAt -updatedAt -__v' })
+            .populate({ path: 'user', select: 'fullName' })
             .select("-__v -createdAt -updatedAt");
 
         return this.handleResponseGetList({ listOrders: found, pageSize, pageNumber });
@@ -172,6 +178,7 @@ export class OrderService {
         const found = await this.orderModel.find()
             .sort({ createdAt: -1 })
             .populate({ path: 'deliveryAddress', select: '-createdAt -updatedAt -__v' })
+            .populate({ path: 'user', select: 'fullName' })
             .select("-__v -createdAt -updatedAt");
 
         return this.handleResponseGetList({ listOrders: found, pageSize, pageNumber });
@@ -267,6 +274,7 @@ export class OrderService {
     // =============================================== VNPAY ===============================================
     async generatePaymentUrl(paymentUrlDto: PaymentUrlDto): Promise<string> {
         const amount = await this.convertUSDToVND(paymentUrlDto.total);
+
         const params = {
             vnp_TxnRef: paymentUrlDto.orderId,
             vnp_IpAddr: "1.1.1.1",

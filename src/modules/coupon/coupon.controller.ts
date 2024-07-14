@@ -5,7 +5,7 @@ import { TransformResponseInterceptor } from 'src/utils/interceptors/response.in
 import { Body, Controller, Get, Param, Post, Put, Query, UseInterceptors } from '@nestjs/common';
 import {
     AddCouponTopUserDto,
-    CreateCouponDto, PaginationDto, PaginationUserDto, PaginationUserStatusDto,
+    CreateCouponDto, PaginationDto, PaginationKeywordDto, PaginationUserDto, PaginationUserStatusDto,
     PaginationUserValidDto, UpdateCouponDto
 } from './dto';
 
@@ -32,6 +32,12 @@ export class CouponController {
     async getById(@Param('couponId', new ValidateObjectIdPipe()) couponId: Types.ObjectId) {
         const result = await this.couponService.getById(couponId);
         return { message: "Get Coupon succeed.", result }
+    }
+
+    @Get("find/by-keyword")
+    async findByKeyword(@Query() paginationKeywordDto: PaginationKeywordDto) {
+        const result = await this.couponService.findByKeyword(paginationKeywordDto);
+        return { message: "Find Coupon By Keyword succeed.", result: result.data, pages: result.pages }
     }
 
     @Get()

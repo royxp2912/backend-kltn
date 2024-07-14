@@ -1,6 +1,6 @@
 import { Model, Types } from "mongoose";
 import { InjectModel } from "@nestjs/mongoose";
-import { CreateCateDto, UpdateCateDto } from "./dto";
+import { CreateCateDto, HandleResponseGetListDto, PaginationFindKeywordDto, UpdateCateDto } from "./dto";
 import { Product } from "src/schemas/product.schema";
 import { Category } from "src/schemas/category.schema";
 import { Injectable, NotFoundException } from "@nestjs/common";
@@ -52,6 +52,38 @@ export class CategoryService {
                 "total": total,
             })
         }
+        return result;
+    }
+
+    async findByKeyword(paginationFindKeywordDto: PaginationFindKeywordDto) {
+        const keyword = paginationFindKeywordDto.keyword;
+        const pageSize = paginationFindKeywordDto.pageSize || 1;
+        const pageNumber = paginationFindKeywordDto.pageNumber || 6;
+        const found = await this.categoryModel.find({
+            $or: [{ 'name': { $regex: keyword, $options: 'i' } },],
+        })
+            .select("-__v -createdAt -updatedAt");
+        const result = [];
+        for (const cate of found) {
+            const total = await (await this.productModel.find({ category: cate._id })).length;
+            result.push({
+                "_id": cate._id,
+                "name": cate.name,
+                "img": cate.img,
+                "total": total,
+            })
+        }
+        return await this.handleResponseGetList({ listCates: result, pageSize, pageNumber });
+    }
+
+    // special
+    async handleResponseGetList(handleResponseGetListDto: HandleResponseGetListDto) {
+        const { listCates, pageSize, pageNumber } = handleResponseGetListDto;
+
+        const pages: number = Math.ceil(listCates.length / pageSize);
+        const final = listCates.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+        const result = { total: listCates.length, pages: pages, data: final }
+
         return result;
     }
 }

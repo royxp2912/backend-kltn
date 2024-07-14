@@ -4,10 +4,10 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { CloudinaryService } from "../cloudinary/cloudinary.service";
 import { ValidateObjectIdPipe } from "src/utils/customPipe/validateObjectId.pipe";
 import {
-    Body, Controller, Delete, FileTypeValidator, Get, HttpException, HttpStatus, MaxFileSizeValidator, Param, ParseFilePipe, Post, Put, UploadedFile, UseInterceptors
+    Body, Controller, Delete, FileTypeValidator, Get, HttpException, HttpStatus, MaxFileSizeValidator, Param, ParseFilePipe, Post, Put, Query, UploadedFile, UseInterceptors
 } from "@nestjs/common";
 import { Types } from "mongoose";
-import { UpdateCateDto } from "./dto";
+import { PaginationFindKeywordDto, UpdateCateDto } from "./dto";
 import { TransformResponseInterceptor } from "src/utils/interceptors/response.interceptor";
 
 @Controller('categories')
@@ -78,23 +78,22 @@ export class CategoryController {
         return { message: "Update Category Succeed" };
     }
 
+    @Get("find/by-keyword")
+    async findByKeyword(@Query() paginationFindKeywordDto: PaginationFindKeywordDto) {
+        const result = await this.categoryService.findByKeyword(paginationFindKeywordDto);
+        return { message: "Find By Keyword Succeed", result: result.data, pages: result.pages }
+    }
+
     @Get(":cateId")
     async getById(@Param('cateId', new ValidateObjectIdPipe()) cateId: Types.ObjectId) {
         const result = await this.categoryService.getById(cateId);
-        return {
-            message: "Get Category By Id Succeed",
-            result,
-        }
+        return { message: "Get Category By Id Succeed", result }
     }
 
     @Get()
     async getAllCategory() {
         const result = await this.categoryService.getAll();
-        return {
-            message: "Get All Category Succeed",
-            result,
-            total: result.length
-        }
+        return { message: "Get All Category Succeed", result, total: result.length }
     }
 
     @Delete(":cateId")

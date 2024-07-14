@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 import { GoodReceiptService } from './good-receipt.service';
 import { CreateGoodReceiptDto } from './dto/CreateGoodReceipt.dto';
-import { CreateSupplierDto, PaginationAllDto, UpdateSupplierDto } from './dto';
+import { CreateSupplierDto, PaginationAllDto, PaginationKeywordDto, UpdateSupplierDto } from './dto';
 import { ValidateObjectIdPipe } from 'src/utils/customPipe/validateObjectId.pipe';
 import { TransformResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
 import { Body, Controller, Get, Param, Post, Put, UseInterceptors, Query, Delete, Patch, UseGuards, Req } from '@nestjs/common';
@@ -48,6 +48,12 @@ export class GoodReceiptController {
         return { message: "Get All Good Receipt succeed.", pages: result.pages, result: result.data }
     } // == RECEIPT
 
+    @Get("receipts/find/by-keyword")
+    async findReceiptByKeyword(@Query() paginationKeywordDto: PaginationKeywordDto) {
+        const result = await this.goodReceiptService.findReceiptByKeyword(paginationKeywordDto);
+        return { message: "Find Receipt By Keyword succeed.", pages: result.pages, result: result.data }
+    } // == RECEIPT
+
     @Get("receipts/:receiptId")
     async getDetailReceipt(@Param('receiptId') receiptId: string) {
         const result = await this.goodReceiptService.getDetailGoodReceiptById(receiptId);
@@ -58,6 +64,12 @@ export class GoodReceiptController {
     async getAllSupplier(@Query() paginationAllDto: PaginationAllDto) {
         const result = await this.goodReceiptService.getAllSupplier(paginationAllDto);
         return { message: "Get All Supplier succeed.", pages: result.pages, result: result.data }
+    } // == SUPPLIER
+
+    @Get("suppliers/find/by-keyword")
+    async findSupplierByKeyword(@Query() paginationKeywordDto: PaginationKeywordDto) {
+        const result = await this.goodReceiptService.findSupplierByKeyword(paginationKeywordDto);
+        return { message: "Find Supplier By Keyword succeed.", pages: result.pages, result: result.data }
     } // == SUPPLIER
 
     @Get("suppliers/:supId")

@@ -9,6 +9,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import {
     AddCouponTopUserDto,
     CreateCouponDto, HandleResponseGetAllDto, HandleResponseGetListByUserDto, PaginationDto,
+    PaginationKeywordDto,
     PaginationUserDto, PaginationUserStatusDto, PaginationUserValidDto, UpdateCouponDto
 } from './dto';
 import { User } from 'src/schemas/user.schema';
@@ -140,6 +141,20 @@ export class CouponService {
         const pageSize = paginationDto.pageSize || 1;
         const pageNumber = paginationDto.pageNumber || 1;
         const found = await this.couponModel.find({}).select("-__v -createdAt -updatedAt");
+        return await this.handleResponseGetAll({ listCoupons: found, pageSize, pageNumber });
+    }
+
+    async findByKeyword(paginationKeywordDto: PaginationKeywordDto): Promise<PaginationRes> {
+        const keyword = paginationKeywordDto.keyword;
+        const pageSize = paginationKeywordDto.pageSize || 5;
+        const pageNumber = paginationKeywordDto.pageNumber || 1;
+
+        const found = await this.couponModel.find({
+            $or: [
+                { 'code': { $regex: keyword, $options: 'i' } },
+                { 'name': { $regex: keyword, $options: 'i' } }
+            ]
+        }).select("-__v -createdAt -updatedAt");
         return await this.handleResponseGetAll({ listCoupons: found, pageSize, pageNumber });
     }
 

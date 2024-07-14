@@ -166,19 +166,19 @@ export class OrderController {
     }
 
     /// - tesst
-    @Get('redirect/callback')
-    @Redirect()
-    redirectToRoute() {
-        const isTrue: boolean = true;
-        if (isTrue) {
-            console.log("dung");
+    // @Get('redirect/callback')
+    // @Redirect()
+    // redirectToRoute() {
+    //     const isTrue: boolean = true;
+    //     if (isTrue) {
+    //         console.log("dung");
 
-            return { statusCode: HttpStatus.FOUND, url: "https://www.facebook.com/" };
-        } else {
-            console.log("sai");
-            return { statusCode: HttpStatus.FOUND, url: "https://www.youtube.com/" };
-        }
-    }
+    //         return { statusCode: HttpStatus.FOUND, url: "https://www.facebook.com/" };
+    //     } else {
+    //         console.log("sai");
+    //         return { statusCode: HttpStatus.FOUND, url: "https://www.youtube.com/" };
+    //     }
+    // }
 
 
     @Get("test/api-test")
