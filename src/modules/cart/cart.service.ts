@@ -77,12 +77,14 @@ export class CartService {
             product: product, color: others.color, size: others.size, quantity: others.quantity,
         });
         if (!isStock) throw new BadRequestException("Product is out of stock.");
+        const image = await this.variantService.getVarByInfo(product, others.color);
 
         const result = await this.cartModel.findOneAndUpdate(
             { user: user, "items.product": product },
             {
                 $set:
                 {
+                    "items.$.image": image.image,
                     "items.$.size": others.size,
                     "items.$.color": others.color,
                     "items.$.hex": VARIANT_HEX[others.color],
