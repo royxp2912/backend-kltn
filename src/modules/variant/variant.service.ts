@@ -327,6 +327,14 @@ export class VariantService {
         }
     } // done
 
+    async deleteAllVariantOfProduct(proId: Types.ObjectId) {
+        const result = await this.variantModel.find({ product: proId });
+        for (const vars of result) {
+            await this.cloudinaryService.deleteImageOnCloud(vars.image);
+            await this.detailVariantModel.deleteMany({ variant: vars._id });
+        }
+    }
+
     // ============================================= SPECIAL =============================================
     async checkProductExist(proId: Types.ObjectId) {
         const found = await this.productModel.findById(proId);
