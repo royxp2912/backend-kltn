@@ -145,7 +145,7 @@ export class OrderController {
     @Get("create/payment-url")
     @UseInterceptors(TransformResponseInterceptor)
     async generatePaymentUrl(@Query() paymentUrlDto: PaymentUrlDto) {
-        const result = this.orderService.generatePaymentUrl(paymentUrlDto);
+        const result = await this.orderService.generatePaymentUrl(paymentUrlDto);
         return { message: "Create payment-url succeed.", result }
     }
 
