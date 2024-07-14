@@ -10,7 +10,7 @@ import {
     CreateProductDto, GetAllProductDto, GetByCategoryDto, GetByStatusDto, PaginationKeywordSortDto, PriceManagementDto, UpdateProductDto
 } from './dto';
 import {
-    Body, Controller, Get, Param, Patch, Post, Put, Query, Req, UseGuards, UseInterceptors
+    Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Req, UseGuards, UseInterceptors
 } from '@nestjs/common';
 
 @Controller('products')
@@ -70,6 +70,12 @@ export class ProductController {
 
         const result = await this.productService.findByKeywordASort(paginationKeywordSortDto);
 
+        return { message: "Find Product By Keyword Succeed", result: result.data, pages: result.pages };
+    }
+
+    @Get("admin/find/by-keyword")
+    async findByKeyword(@Query() paginationKeywordSortDto: PaginationKeywordSortDto) {
+        const result = await this.productService.findByKeyword(paginationKeywordSortDto);
         return { message: "Find Product By Keyword Succeed", result: result.data, pages: result.pages };
     }
 
@@ -152,7 +158,11 @@ export class ProductController {
     }
 
     // DELETE ========================================
-
+    @Delete(":proId")
+    async deleteProductById(@Param('proId', new ValidateObjectIdPipe()) proId: Types.ObjectId) {
+        await this.productService.deleteById(proId);
+        return { message: "Delete Product By Id Succeed" };
+    }
     // ======================================== PRICE MANAGEMENT ========================================
     @Put("management/price")
     async priceManagement(@Body() priceManagementDto: PriceManagementDto) {

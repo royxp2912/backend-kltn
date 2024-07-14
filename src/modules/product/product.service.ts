@@ -102,6 +102,24 @@ export class ProductService {
         return await this.handleResponseGetList({ user, listProducts: final, pageSize, pageNumber });
     }
 
+    async findByKeyword(paginationKeywordSortDto: PaginationKeywordSortDto): Promise<GetAllProductRes> {
+        const user = paginationKeywordSortDto.user;
+        const keyword = paginationKeywordSortDto.keyword;
+        const pageSize = paginationKeywordSortDto.pageSize || 1;
+        const pageNumber = paginationKeywordSortDto.pageNumber || 1;
+
+        const found = await this.productModel.find({
+            $or: [
+                { name: { $regex: keyword, $options: 'i' } },
+                { desc: { $regex: keyword, $options: 'i' } },
+                { brand: { $regex: keyword, $options: 'i' } },
+                { category: { $in: await this.categoryModel.find({ name: { $regex: keyword, $options: 'i' } }) } },
+            ],
+        }).select("_id price rating brand");
+
+        return await this.handleResponseGetList({ user, listProducts: found, pageSize, pageNumber });
+    }
+
     async getQuantityEachBrand(): Promise<QuantityOfBrand[]> {
         const result: QuantityOfBrand[] = [];
 
@@ -225,8 +243,10 @@ export class ProductService {
     }
 
     // DELETE ========================================
-    async deleteById(proId: Types.ObjectId): Promise<Product> {
-        return
+    async deleteById(proId: Types.ObjectId): Promise<void> {
+        const result = await this.productModel.findByIdAndDelete(proId);
+        if (!result) throw new NotFoundException("Product not found.");
+        await this.variantService.deleteAllVariantOfProduct(proId);
     }
 
     // ======================================== SPECIAL ========================================
