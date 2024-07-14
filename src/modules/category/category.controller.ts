@@ -7,7 +7,7 @@ import {
     Body, Controller, Delete, FileTypeValidator, Get, HttpException, HttpStatus, MaxFileSizeValidator, Param, ParseFilePipe, Post, Put, Query, UploadedFile, UseInterceptors
 } from "@nestjs/common";
 import { Types } from "mongoose";
-import { PaginationFindKeywordDto, UpdateCateDto } from "./dto";
+import { PaginationDto, PaginationFindKeywordDto, UpdateCateDto } from "./dto";
 import { TransformResponseInterceptor } from "src/utils/interceptors/response.interceptor";
 
 @Controller('categories')
@@ -91,9 +91,9 @@ export class CategoryController {
     }
 
     @Get()
-    async getAllCategory() {
-        const result = await this.categoryService.getAll();
-        return { message: "Get All Category Succeed", result, total: result.length }
+    async getAllCategory(@Query() paginationDto: PaginationDto) {
+        const result = await this.categoryService.getAll(paginationDto);
+        return { message: "Get All Category Succeed", result: result.data, pages: result.pages }
     }
 
     @Delete(":cateId")
@@ -108,11 +108,11 @@ export class CategoryController {
         return { message: "Delete Category By Id Succeed" }
     }
 
-    @Delete()
-    async deleteAll() {
-        const allCategory = await this.categoryService.getAll();
-        await Promise.all(allCategory.map((cate) => (this.cloudinaryService.deleteImageOnCloud(cate.img))));
-        await this.categoryService.deleteAll();
-        return { message: "Delete All Category By Id Succeed" }
-    }
+    // @Delete()
+    // async deleteAll() {
+    //     const allCategory = await this.categoryService.getAll();
+    //     await Promise.all(allCategory.map((cate) => (this.cloudinaryService.deleteImageOnCloud(cate.img))));
+    //     await this.categoryService.deleteAll();
+    //     return { message: "Delete All Category By Id Succeed" }
+    // }
 }

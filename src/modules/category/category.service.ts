@@ -1,6 +1,6 @@
 import { Model, Types } from "mongoose";
 import { InjectModel } from "@nestjs/mongoose";
-import { CreateCateDto, HandleResponseGetListDto, PaginationFindKeywordDto, UpdateCateDto } from "./dto";
+import { CreateCateDto, HandleResponseGetListDto, PaginationDto, PaginationFindKeywordDto, UpdateCateDto } from "./dto";
 import { Product } from "src/schemas/product.schema";
 import { Category } from "src/schemas/category.schema";
 import { Injectable, NotFoundException } from "@nestjs/common";
@@ -40,7 +40,9 @@ export class CategoryService {
         return result;
     }
 
-    async getAll(): Promise<Category[]> {
+    async getAll(paginationDto: PaginationDto) {
+        const pageSize = paginationDto.pageSize || 1;
+        const pageNumber = paginationDto.pageNumber || 6;
         const found = await this.categoryModel.find().select("-__v -createdAt -updatedAt");
         const result = [];
         for (const cate of found) {
@@ -52,7 +54,7 @@ export class CategoryService {
                 "total": total,
             })
         }
-        return result;
+        return await this.handleResponseGetList({ listCates: result, pageSize, pageNumber });
     }
 
     async findByKeyword(paginationFindKeywordDto: PaginationFindKeywordDto) {
