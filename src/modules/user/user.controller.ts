@@ -118,7 +118,7 @@ export class UserController {
         }
     }
 
-    @UseGuards(AuthGuard('admin-jwt'))
+    // @UseGuards(AuthGuard('admin-jwt'))
     @Get()
     async getAll(@Query() getAllDto: GetAllDto) {
         const result = await this.userService.getAll(getAllDto);

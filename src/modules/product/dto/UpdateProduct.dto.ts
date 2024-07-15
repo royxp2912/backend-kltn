@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { PRODUCT_BRAND } from "src/constants/schema.enum";
+import { PRODUCT_BRAND, PRODUCT_GENDER } from "src/constants/schema.enum";
 import { IsObjectId } from "class-validator-mongo-object-id";
 import { IsString, IsNumber, IsEnum, IsOptional, IsNotEmpty } from "class-validator";
 
@@ -23,6 +23,10 @@ export class UpdateProductDto {
     @IsEnum(PRODUCT_BRAND)
     @IsOptional()
     brand?: PRODUCT_BRAND;
+
+    @IsEnum(PRODUCT_GENDER)
+    @IsOptional()
+    gender?: PRODUCT_GENDER;
 
     @IsNumber()
     @IsOptional()

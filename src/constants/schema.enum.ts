@@ -108,6 +108,12 @@ export enum USER_COUPON_STATUS {
     EXPIRED = 'EXPIRED'
 }
 
+export enum PRODUCT_GENDER {
+    MALE = 'MALE',
+    FEMALE = 'FEMALE',
+    UNISEX = 'UNISEX'
+}
+
 export enum NOTI_TYPE {
     OTHERS = 'OTHERS',
     COUPON_NEW = 'COUPON_NEW',

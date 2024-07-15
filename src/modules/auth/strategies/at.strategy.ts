@@ -18,7 +18,6 @@ export class AtStrategy extends PassportStrategy(Strategy, 'jwt') {
     validate(req: Request, payload: JwtPayload) {
         const userInReq = req.params.userId || req.body.user;
         const userInPayload = payload.userId;
-        console.log("payload: ", payload);
 
         if (userInReq !== userInPayload && payload.role !== USER_ROLES.Admin)
             throw new ForbiddenException("You do not have access to this resource.");

@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { Transform } from "class-transformer";
 import { SORT } from "src/constants/dto..enum";
-import { PRODUCT_BRAND, VARIANT_COLOR } from "src/constants/schema.enum";
+import { PRODUCT_BRAND, PRODUCT_GENDER, VARIANT_COLOR } from "src/constants/schema.enum";
 import { IsObjectId } from "class-validator-mongo-object-id";
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional } from "class-validator";
 
@@ -21,6 +21,10 @@ export class GetByCategoryDto {
     @IsEnum(PRODUCT_BRAND)
     @IsOptional()
     brand?: PRODUCT_BRAND;
+
+    @IsEnum(PRODUCT_GENDER)
+    @IsOptional()
+    gender?: PRODUCT_GENDER;
 
     @IsObjectId({ message: "category must be an ObjectId." })
     @IsNotEmpty()

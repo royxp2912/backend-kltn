@@ -1,6 +1,6 @@
 import { SchemaTypes, Types } from "mongoose";
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { PRODUCT_BRAND, PRODUCT_STATUS } from "src/constants/schema.enum";
+import { PRODUCT_BRAND, PRODUCT_GENDER, PRODUCT_STATUS } from "src/constants/schema.enum";
 
 @Schema({ timestamps: true })
 export class Product {
@@ -27,6 +27,9 @@ export class Product {
 
     @Prop({ default: 0 })
     sold: number;
+
+    @Prop({ type: String, enum: PRODUCT_GENDER, default: PRODUCT_GENDER.UNISEX })
+    gender: PRODUCT_GENDER;
 
     @Prop({ type: String, enum: PRODUCT_STATUS, default: PRODUCT_STATUS.Active })
     status: PRODUCT_STATUS;

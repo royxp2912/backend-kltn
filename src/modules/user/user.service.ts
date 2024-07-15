@@ -144,7 +144,7 @@ export class UserService {
     }
 
     async getAll(getAllDto: GetAllDto): Promise<GetAllRes> {
-        const pageSize = getAllDto.pageSize || 1;
+        const pageSize = getAllDto.pageSize || 6;
         const pageNumber = getAllDto.pageNumber || 1;
 
         const found = await this.userModel.find()
