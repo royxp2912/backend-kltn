@@ -96,7 +96,7 @@ export class ProductService {
                 { category: { $in: await this.categoryModel.find({ name: { $regex: keyword, $options: 'i' } }) } },
             ],
             status: PRODUCT_STATUS.Active,
-        }).select("_id price rating brand");
+        }).select("_id price rating brand gender");
 
         const final = await this.allSort(found, brand, color, gender, sort);
 
