@@ -45,10 +45,11 @@ export class GoodReceiptService {
     } // POST
 
     // ======================================== PUT ========================================
-    async updateReceiptToWarehouse(receiptId: Types.ObjectId, updater: Types.ObjectId) {
+    async updateReceiptToWarehouse(receiptId: string, updater: Types.ObjectId) {
         const update_date: Date = new Date();
-        const result = await this.goodReceiptModel.findByIdAndUpdate(
-            receiptId, { status: RECEIPT_STATUS.UPDATED, updater, update_date, }
+        const result = await this.goodReceiptModel.findOneAndUpdate(
+            { receiptId },
+            { status: RECEIPT_STATUS.UPDATED, updater, update_date, }
         );
         if (!result) throw new NotFoundException("Receipt not found.");
     }
@@ -194,6 +195,7 @@ export class GoodReceiptService {
                 confirmation_date: moment(receipt.confirmation_date).format("DD/MM/YYYY"),
                 total_receipt: receipt.total,
                 notes: receipt.notes,
+                status: receipt.status,
             }
             result.push(item);
         }
@@ -215,7 +217,7 @@ export class GoodReceiptService {
         const newListReceipts: GoodReceiptType[] = await this.fillInfoGoodReceipts(listReceipts);
 
         const semiFinal = newListReceipts.filter(receipt =>
-            regexKeyword.test(receipt.supplier) || regexKeyword.test(receipt.confirmer)
+            regexKeyword.test(receipt.supplier) || regexKeyword.test(receipt.confirmer) || regexKeyword.test(receipt.receiptId)
         );
 
         const pages: number = Math.ceil(listReceipts.length / pageSize);

@@ -273,12 +273,10 @@ export class OrderService {
 
     // =============================================== VNPAY ===============================================
     async generatePaymentUrl(paymentUrlDto: PaymentUrlDto): Promise<string> {
-        const amount = await this.convertUSDToVND(paymentUrlDto.total);
-
         const params = {
             vnp_TxnRef: paymentUrlDto.orderId,
             vnp_IpAddr: "1.1.1.1",
-            vnp_Amount: amount,
+            vnp_Amount: paymentUrlDto.total,
             vnp_OrderInfo: 'Payment for order ' + paymentUrlDto.orderId,
             vnp_OrderType: 'billpayment',
             vnp_ReturnUrl: process.env.VNP_RETURNURL,

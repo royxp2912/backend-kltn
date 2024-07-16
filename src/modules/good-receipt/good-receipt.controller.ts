@@ -34,9 +34,7 @@ export class GoodReceiptController {
 
     @UseGuards(AuthGuard('admin-jwt'))
     @Patch("receipts/:receiptId")
-    async updateReceiptToWarehouse(@Req() req, @Param('receiptId', new ValidateObjectIdPipe()) receiptId: Types.ObjectId) {
-        console.log("req: ", req);
-
+    async updateReceiptToWarehouse(@Req() req, @Param('receiptId') receiptId: string) {
         await this.goodReceiptService.updateReceiptToWarehouse(receiptId, req.user.userId);
         return { message: "Update Supplier succeed." }
     }
