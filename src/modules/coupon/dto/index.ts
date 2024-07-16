@@ -3,6 +3,7 @@ export * from "./CreateCoupon.dto";
 export * from "./UpdateCoupon.dto";
 export * from "./PaginationUser.dto";
 export * from "./AddCouponTopUser.dto";
+export * from "./PaginationKeyword.dto";
 export * from "./PaginationUserValid.dto";
 export * from "./PaginationUserStatus.dto";
 export * from "./HandleResponseGetAll.dto";

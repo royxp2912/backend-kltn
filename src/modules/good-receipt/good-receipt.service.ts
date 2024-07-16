@@ -13,7 +13,7 @@ import {
     DetailReceipt, GoodReceiptType, PaginationAllReceipt, PaginationAllSupplier
 } from './types';
 import {
-    CreateSupplierDto, PaginationAllDto, UpdateSupplierDto
+    CreateSupplierDto, PaginationAllDto, PaginationKeywordDto, UpdateSupplierDto
 } from './dto';
 
 @Injectable()
@@ -45,10 +45,11 @@ export class GoodReceiptService {
     } // POST
 
     // ======================================== PUT ========================================
-    async updateReceiptToWarehouse(receiptId: Types.ObjectId, updater: Types.ObjectId) {
+    async updateReceiptToWarehouse(receiptId: string, updater: Types.ObjectId) {
         const update_date: Date = new Date();
-        const result = await this.goodReceiptModel.findByIdAndUpdate(
-            receiptId, { status: RECEIPT_STATUS.UPDATED, updater, update_date, }
+        const result = await this.goodReceiptModel.findOneAndUpdate(
+            { receiptId },
+            { status: RECEIPT_STATUS.UPDATED, updater, update_date, }
         );
         if (!result) throw new NotFoundException("Receipt not found.");
     }
@@ -79,6 +80,15 @@ export class GoodReceiptService {
         const listReceipts = await this.goodReceiptModel.find().select("-createdAt -updatedAt -__v -_id");
 
         return await this.handleResponseGetList(pageSize, pageNumber, listReceipts);
+    }
+
+    async findReceiptByKeyword(paginationKeywordDto: PaginationKeywordDto) {
+        const keyword = paginationKeywordDto.keyword;
+        const pageSize = paginationKeywordDto.pageSize || 6;
+        const pageNumber = paginationKeywordDto.pageNumber || 1;
+        const listReceipts = await this.goodReceiptModel.find().select("-createdAt -updatedAt -__v -_id");
+
+        return await this.handleResponseFindByKeyword(keyword, pageSize, pageNumber, listReceipts);
     }
 
     // ======================================= DELETE ======================================
@@ -119,6 +129,35 @@ export class GoodReceiptService {
         return result;
     } // GET
 
+    async findSupplierByKeyword(paginationKeywordDto: PaginationKeywordDto) {
+        const keyword = paginationKeywordDto.keyword;
+        const pageSize = paginationKeywordDto.pageSize || 6;
+        const pageNumber = paginationKeywordDto.pageNumber || 1;
+
+        const listSuppliers = await this.supplierModel.find({
+            $or: [
+                { 'email': { $regex: keyword, $options: 'i' } },
+                { 'address': { $regex: keyword, $options: 'i' } },
+                { 'supplier_name': { $regex: keyword, $options: 'i' } },
+                { 'contacter_name': { $regex: keyword, $options: 'i' } },
+            ]
+        }).select("-createdAt -updatedAt -__v").lean();
+
+        const pages: number = Math.ceil(listSuppliers.length / pageSize);
+        const semiFinal = listSuppliers.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+
+        const final = [];
+        for (const supplier of semiFinal) {
+            const totalReceipt = await this.goodReceiptModel.find({ supplier: supplier });
+            const item = { ...supplier, total_receipt: totalReceipt.length };
+            final.push(item);
+        }
+
+        const result: PaginationAllSupplier = { pages: pages, data: final }
+
+        return result;
+    }
+
     async updateSupplier(updateSupplierDto: UpdateSupplierDto) {
         const { supplier } = updateSupplierDto;
         const updated = await this.supplierModel.findByIdAndUpdate(
@@ -156,6 +195,7 @@ export class GoodReceiptService {
                 confirmation_date: moment(receipt.confirmation_date).format("DD/MM/YYYY"),
                 total_receipt: receipt.total,
                 notes: receipt.notes,
+                status: receipt.status,
             }
             result.push(item);
         }
@@ -167,6 +207,21 @@ export class GoodReceiptService {
         const pages: number = Math.ceil(listReceipts.length / pageSize);
         const semiFinal = listReceipts.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
         const final: GoodReceiptType[] = await this.fillInfoGoodReceipts(semiFinal);
+        const result: PaginationAllReceipt = { pages: pages, data: final }
+
+        return result;
+    }
+
+    async handleResponseFindByKeyword(keyword: string, pageSize: number, pageNumber: number, listReceipts: (Document<unknown, {}, GoodReceipt> & GoodReceipt & { _id: Types.ObjectId; })[]) {
+        const regexKeyword = new RegExp(keyword, 'i');
+        const newListReceipts: GoodReceiptType[] = await this.fillInfoGoodReceipts(listReceipts);
+
+        const semiFinal = newListReceipts.filter(receipt =>
+            regexKeyword.test(receipt.supplier) || regexKeyword.test(receipt.confirmer) || regexKeyword.test(receipt.receiptId)
+        );
+
+        const pages: number = Math.ceil(listReceipts.length / pageSize);
+        const final = semiFinal.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
         const result: PaginationAllReceipt = { pages: pages, data: final }
 
         return result;

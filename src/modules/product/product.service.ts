@@ -10,7 +10,7 @@ import { CommentService } from '../comment/comment.service';
 import { VariantService } from '../variant/variant.service';
 import { FavoriteService } from '../favorite/favorite.service';
 import { CategoryService } from '../category/category.service';
-import { PRODUCT_BRAND, PRODUCT_STATUS, VARIANT_COLOR } from 'src/constants/schema.enum';
+import { PRODUCT_BRAND, PRODUCT_GENDER, PRODUCT_STATUS, VARIANT_COLOR } from 'src/constants/schema.enum';
 import { OPTION_PRICE_MANAGEMENT, PART_PRICE_MANAGEMENT, TYPE_PRICE_MANAGEMENT } from './constants';
 import { ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
@@ -83,6 +83,7 @@ export class ProductService {
         const sort = paginationKeywordSortDto.sort;
         const color = paginationKeywordSortDto.color;
         const brand = paginationKeywordSortDto.brand;
+        const gender = paginationKeywordSortDto.gender;
         const keyword = paginationKeywordSortDto.keyword;
         const pageSize = paginationKeywordSortDto.pageSize || 1;
         const pageNumber = paginationKeywordSortDto.pageNumber || 1;
@@ -95,9 +96,9 @@ export class ProductService {
                 { category: { $in: await this.categoryModel.find({ name: { $regex: keyword, $options: 'i' } }) } },
             ],
             status: PRODUCT_STATUS.Active,
-        }).select("_id price rating brand");
+        }).select("_id price rating brand gender");
 
-        const final = await this.allSort(found, brand, color, sort);
+        const final = await this.allSort(found, brand, color, gender, sort);
 
         return await this.handleResponseGetList({ user, listProducts: final, pageSize, pageNumber });
     }
@@ -174,7 +175,7 @@ export class ProductService {
 
     async getByCategory(getByCategoryDto: GetByCategoryDto): Promise<GetAllProductRes> {
         const cateId = getByCategoryDto.category;
-        const { user, sort, brand, color } = getByCategoryDto;
+        const { user, sort, brand, color, gender } = getByCategoryDto;
         await this.categoryService.getById(cateId);
 
         const pageSize = getByCategoryDto.pageSize || 1;
@@ -184,7 +185,7 @@ export class ProductService {
             .populate({ path: "category", select: "name" })
             .select('-__v -createdAt -updatedAt');
 
-        const final = await this.allSort(found, brand, color, sort);
+        const final = await this.allSort(found, brand, color, gender, sort);
 
         return await this.handleResponseGetList({ user, listProducts: final, pageSize, pageNumber });
     }
@@ -375,9 +376,10 @@ export class ProductService {
     }
 
     // ======================================== HOT DEAL ========================================
-    async allSort(listProducts: (Document<unknown, {}, Product> & Product & { _id: Types.ObjectId })[], brand?: PRODUCT_BRAND, color?: VARIANT_COLOR, sort?: SORT) {
+    async allSort(listProducts: (Document<unknown, {}, Product> & Product & { _id: Types.ObjectId })[], brand?: PRODUCT_BRAND, color?: VARIANT_COLOR, gender?: PRODUCT_GENDER, sort?: SORT) {
         let final = [];
         let semiFinal = listProducts;
+        if (gender) semiFinal = listProducts.filter(item => item.gender === gender);
         if (brand) semiFinal = listProducts.filter(item => item.brand === brand);
         if (color) {
             for (const product of semiFinal) {
