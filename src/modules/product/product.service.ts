@@ -178,7 +178,8 @@ export class ProductService {
         const { user, sort, brand, color, gender } = getByCategoryDto;
         await this.categoryService.getById(cateId);
 
-        const pageSize = getByCategoryDto.pageSize || 1;
+        const pageSize = 3;
+        // const pageSize = getByCategoryDto.pageSize || 1;
         const pageNumber = getByCategoryDto.pageNumber || 1;
         const found = await this.productModel.find({ category: cateId, status: PRODUCT_STATUS.Active })
             .sort({ createdAt: -1 })
@@ -203,6 +204,7 @@ export class ProductService {
 
     async getAll(getAllProductDto: GetAllProductDto): Promise<GetAllProductRes> {
         const user = getAllProductDto.user;
+        // const pageSize = 3;
         const pageSize = getAllProductDto.pageSize || 1;
         const pageNumber = getAllProductDto.pageNumber || 1;
         const found = await this.productModel.find()

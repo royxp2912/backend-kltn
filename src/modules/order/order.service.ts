@@ -92,6 +92,7 @@ export class OrderService {
         const found = await this.orderModel.find({
             $or: [
                 { 'items.name': { $regex: keyword, $options: 'i' } },
+                { orderId: { $regex: keyword, $options: 'i' } },
                 { status: { $regex: keyword, $options: 'i' } },
                 { paymentMethod: { $regex: keyword, $options: 'i' } },
             ],
