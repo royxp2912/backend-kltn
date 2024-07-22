@@ -190,7 +190,7 @@ export class CouponService {
         for (const item of foundListCoupons) {
             const found = await this.getById(item.coupon);
             const priceDifference = found.minAmount - amount;
-            if (priceDifference > 100 || priceDifference <= 0 || isNaN(priceDifference)) continue;
+            if (priceDifference > 1000000 || priceDifference <= 0 || isNaN(priceDifference)) continue;
             result.push({
                 ...found, _id: item._id,
                 startDate: item.startDate,

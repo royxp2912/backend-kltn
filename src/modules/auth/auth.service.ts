@@ -103,7 +103,6 @@ export class AuthService {
         if (token !== lastestToken) throw new ForbiddenException("Refresh Token is not valid");
 
         const newTokens = await this.getTokens(userId, role);
-        console.log(newTokens);
 
         await this.addNewToken(userId, newTokens.refreshToken);
         return newTokens;

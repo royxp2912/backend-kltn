@@ -19,7 +19,7 @@ export class AuthController {
     async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res) {
         const result = await this.authService.login(loginDto);
 
-        res.cookie('refreshToken', result.tokens.refreshToken, { httpOnly: true });
+        res.cookie('refreshToken', result.tokens.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
         return {
             message: "Login Successful!",
             result: {
@@ -33,7 +33,7 @@ export class AuthController {
     async loginAdmin(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res) {
         const result = await this.authService.loginAdmin(loginDto);
 
-        res.cookie('refreshToken', result.tokens.refreshToken, { httpOnly: true });
+        res.cookie('refreshToken', result.tokens.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
         return {
             message: "Login Successful!",
             result: {
@@ -55,7 +55,7 @@ export class AuthController {
     async refresh(@Req() req, @Res({ passthrough: true }) res) {
         const result = await this.authService.refresh(req.user.userId, req.user.role, req.user.refreshToken);
 
-        res.cookie('refreshToken', result.refreshToken, { httpOnly: true });
+        res.cookie('refreshToken', result.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
         return { message: "Refresh Token succeed", result: result.accessToken };
     }
 

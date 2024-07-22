@@ -49,7 +49,7 @@ export enum VARIANT_COLOR {
     Red = 'Red',
     Blue = 'Blue',
     Gray = 'Gray',
-    Cyan = 'Cyan',
+    // Cyan = 'Cyan',
     Pink = 'Pink',
     Green = 'Green',
     Black = 'Black',

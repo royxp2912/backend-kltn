@@ -60,12 +60,16 @@ export class GoodReceiptService {
         if (!foundReceipt) throw new NotFoundException("Good Receipt not found!");
         const supplier = await this.supplierModel.findById(foundReceipt.supplier);
         const confirmer = await this.userModel.findById(foundReceipt.confirmer);
+        const updater = await this.userModel.findById(foundReceipt.updater);
         const detailReceipt = await this.detailGoodReceiptModel.find({ receipt: receiptId }).select(" -createdAt -updatedAt -__v");
         const result: DetailReceipt = {
             receiptId: foundReceipt.receiptId,
             supplier: supplier.supplier_name,
             confirmer: confirmer.fullName,
             confirmation_date: moment(foundReceipt.confirmation_date).format("DD/MM/YYYY"),
+            updater: updater.fullName,
+            update_date: moment(foundReceipt.update_date).format("DD/MM/YYYY"),
+            status: foundReceipt.status,
             total_receipt: foundReceipt.total,
             notes: foundReceipt.notes,
             details: detailReceipt,

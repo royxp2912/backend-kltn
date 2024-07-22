@@ -41,6 +41,7 @@ export class CategoryService {
     }
 
     async getAll(paginationDto: PaginationDto) {
+        // const pageSize = 3;
         const pageSize = paginationDto.pageSize || 1;
         const pageNumber = paginationDto.pageNumber || 6;
         const found = await this.categoryModel.find().select("-__v -createdAt -updatedAt");
